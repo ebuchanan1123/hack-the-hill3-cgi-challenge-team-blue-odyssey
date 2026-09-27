@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Search, X } from "lucide-react";
 import { PageHeader } from "@/components/pulse/shared";
 import { AccountDetailSheet } from "./detail-sheets";
 import { AccountRiskTable } from "./operations-tables";
 import { mockAccounts, mockUsageHistory } from "@/data/mockAccounts";
-import { markAccountReviewed, readReviewedAccountIds } from "@/lib/reviewed-accounts";
+import { markAccountReviewed, readReviewedAccountIds, subscribeReviewedAccounts } from "@/lib/reviewed-accounts";
 import type { PreventRiskAccount } from "@/types/pulse";
 
 export function FlaggedBills() {
-  const [reviewedIds, setReviewedIds] = useState<string[]>(() => readReviewedAccountIds());
+  const reviewedIds = useSyncExternalStore(subscribeReviewedAccounts, readReviewedAccountIds, () => []);
   const [query, setQuery] = useState("");
   const [risk, setRisk] = useState("all");
   const [reviewState, setReviewState] = useState("active");
@@ -30,7 +30,6 @@ export function FlaggedBills() {
 
   function handleReviewSaved(accountId: string) {
     markAccountReviewed(accountId);
-    setReviewedIds((current) => current.includes(accountId) ? current : [...current, accountId]);
     setSelected(null);
   }
 

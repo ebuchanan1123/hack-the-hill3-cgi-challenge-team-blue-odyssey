@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { ArrowRight, Target } from "lucide-react";
 import { PageHeader, MetricCard, InfoControl } from "@/components/pulse/shared";
 import { AccountRiskTable, ComplaintTable } from "./operations-tables";
 import { AccountDetailSheet, ComplaintDetailSheet } from "./detail-sheets";
-import { markAccountReviewed, readReviewedAccountIds } from "@/lib/reviewed-accounts";
+import { markAccountReviewed, readReviewedAccountIds, subscribeReviewedAccounts } from "@/lib/reviewed-accounts";
 import type { OperationsData, Complaint, PreventRiskAccount } from "@/types/pulse";
 
 /** One-line focus for the period, derived from the complaint queue. */
@@ -15,9 +15,10 @@ function periodFocus(openOverdueCount: number) {
 }
 
 export function Dashboard({ accounts, complaints, usageHistory, statuses, metrics, openOverdueCount }: OperationsData) {
-  const [account, setAccount] = useState<PreventRiskAccount | null>(null); const [complaint, setComplaint] = useState<Complaint | null>(null); const [reviewedAccountIds, setReviewedAccountIds] = useState<string[]>(() => readReviewedAccountIds());
+  const [account, setAccount] = useState<PreventRiskAccount | null>(null); const [complaint, setComplaint] = useState<Complaint | null>(null); const reviewedAccountIds = useSyncExternalStore(subscribeReviewedAccounts, readReviewedAccountIds, () => []);
   const reviewAccounts = accounts.filter((item) => !reviewedAccountIds.includes(item.accountId)).slice(0, 5); const highRisk = reviewAccounts.filter(a => a.risk === "HIGH").length;
-  function handleReviewSaved(accountId: string) { markAccountReviewed(accountId); setReviewedAccountIds((current) => current.includes(accountId) ? current : [...current, accountId]); setAccount(null); }
+  const totalHighRisk = accounts.filter((item) => item.risk === "HIGH").length;
+  function handleReviewSaved(accountId: string) { markAccountReviewed(accountId); setAccount(null); }
   const [learning, setLearning] = useState<{ complaintFeedbackCount: number; resolvedComplaintCount: number; accountReviewCount: number; rootCauses: string[]; message: string } | null>(null);
   useEffect(() => { fetch("/api/learning/summary").then((response) => response.ok ? response.json() : null).then((value) => setLearning(value)).catch(() => undefined); }, []);
   return <>
@@ -26,7 +27,7 @@ export function Dashboard({ accounts, complaints, usageHistory, statuses, metric
     </PageHeader>
     <div className="metrics-grid">{metrics.map(metric => <MetricCard key={metric.label} {...metric} />)}</div>
     <section className="table-section surface-card">
-      <header><div className="section-title"><h2>Flagged bills</h2><InfoControl label="About pre-bill review">Customer-level usage history is simulated for this prototype.</InfoControl></div><span className="section-meta"><Link href="/flagged-bills">View all flagged bills</Link> · {reviewAccounts.length} active · <strong>{highRisk} high risk</strong></span></header>
+      <header><div className="section-title"><h2>Flagged bills</h2><InfoControl label="About pre-bill review">Customer-level usage history is simulated for this prototype.</InfoControl></div><span className="section-meta"><Link href="/flagged-bills">View all flagged bills</Link> · {reviewAccounts.length} active · <strong>{highRisk} high risk active · {totalHighRisk} total</strong></span></header>
       <AccountRiskTable accounts={reviewAccounts} onSelect={setAccount} />
     </section>
     {learning && <section className="learning-strip" aria-labelledby="learning-title"><div><span className="result-eyebrow">LEARN</span><h2 id="learning-title">Feedback is becoming prevention data</h2><p>{learning.message}</p></div><div className="learning-stats"><strong>{learning.resolvedComplaintCount}</strong><span>complaints resolved with feedback</span><strong>{learning.accountReviewCount}</strong><span>pre-bill reviews recorded</span></div>{learning.rootCauses.length > 0 && <div className="learning-causes"><span>Root causes captured</span><b>{learning.rootCauses.join(" · ")}</b></div>}</section>}
