@@ -7,7 +7,7 @@ test("Dashboard and account drawer", async ({ page }) => {
   await dialog.getByText("View chart data", { exact: true }).click(); await expect(dialog.getByRole("cell", { name: "1270 kWh (estimate)" })).toBeVisible();
   for (let i = 0; i < 8; i++) { await page.keyboard.press("Tab"); expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true); }
   await page.keyboard.press("Escape"); await expect(dialog).not.toBeVisible(); await expect(page.getByRole("button", { name: "ACC-18492" })).toBeFocused();
-  await page.getByLabel("About pre-bill review", { exact: true }).click(); await expect(page.getByText("Demo account data used for this prototype.", { exact: false })).toBeVisible(); await page.getByLabel("About pre-bill review", { exact: true }).click(); await page.screenshot({ path: "artifacts/dashboard.png", fullPage: true }); expect(errors).toEqual([]);
+  await page.getByLabel("About pre-bill review", { exact: true }).click(); await expect(page.getByText("Customer-level usage history is simulated for this prototype.", { exact: false })).toBeVisible(); await page.getByLabel("About pre-bill review", { exact: true }).click(); await page.screenshot({ path: "artifacts/dashboard.png", fullPage: true }); expect(errors).toEqual([]);
 });
 test("Complaint filters, search, and details", async ({ page }) => {
   await page.goto("/complaints"); await expect(page.locator("tbody tr")).toHaveCount(7);
