@@ -10,3 +10,4 @@
 **/.next/
 **/out/
 **/*.tsbuildinfo
+**/.northwind-workflow.json
