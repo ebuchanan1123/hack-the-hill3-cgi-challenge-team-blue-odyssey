@@ -22,6 +22,11 @@ export interface Complaint {
   transferRisk: string;
   nextAction: string;
   reasons: string[];
+  status?: ComplaintStatus;
+  dateOpened?: string;
+  dateClosed?: string | null;
+  resolutionAction?: string;
+  billCorrectionValue?: number | null;
 }
 
 /** Frontend demonstration context, separate from API payloads. */
@@ -35,6 +40,8 @@ export interface OperationsData {
   accounts: PreventRiskAccount[];
   complaints: Complaint[];
   usageHistory: Record<string, UsagePoint[]>;
+  metrics: Metric[];
+  statuses: Record<string, ComplaintStatus>;
 }
 
 export interface Metric {
@@ -46,7 +53,7 @@ export interface Metric {
 }
 
 /** Frontend-only status context; deliberately separate from Complaint wire shape. */
-export type ComplaintStatus = "Open" | "In review" | "Awaiting meter reading";
+export type ComplaintStatus = "Open" | "In review" | "Awaiting meter reading" | "Closed" | "Closed - reopened";
 export interface AskPulseEvidence {
   id: string;
   label: string;

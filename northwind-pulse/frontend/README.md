@@ -1,9 +1,8 @@
 # Northwind Pulse frontend
 
-Utility operations workspace with a live Decision Twin integration. Dashboard
-and complaints views still use prototype fixtures; Decision Twin calls the
-backend for grounded Ask Pulse answers and AI-proposed, deterministically scored
-investment strategies.
+Utility operations workspace with live complaint and aggregate metric integration.
+Decision Twin calls the backend for grounded Ask Pulse answers and AI-proposed,
+deterministically scored investment strategies.
 
 ## Run
 
@@ -19,10 +18,11 @@ to `http://127.0.0.1:8000` by default, keeping Gemini credentials on the backend
 Set `NORTHWIND_BACKEND_URL` in the Next.js server environment when the backend is
 running elsewhere. Start the backend separately; see [backend setup](../backend/README.md).
 
-For live Ask Pulse and investment strategies, start the backend in a second
+For live Operations, Complaints, Ask Pulse, and investment strategies, start the backend in a second
 terminal from `backend/` with `python -m uvicorn app.main:app --reload --port 8000`.
-The dashboard and complaints pages remain prototype fixtures; Decision Twin is
-connected to the backend.
+Complaint records and aggregate metrics come from the backend when it is
+available. Synthetic account usage histories remain as a clearly labelled demo
+because the challenge data does not contain customer-level consumption history.
 
 ## Routes
 
@@ -48,7 +48,8 @@ No authentication or standalone Intelligence/Insights page.
 - `src/components/planning/investment-strategy.tsx`: planning brief and generated strategy results.
 - `src/app/api/ask-pulse/route.ts`, `src/app/api/strategy/generate/route.ts`: same-origin server-side proxies.
 - `src/lib/backend-proxy.ts`: backend URL, timeout, and JSON/error handling.
-- `src/data/mockPlanning.ts`: remaining illustrative dashboard metrics and complaint statuses.
+- `src/data/operations.ts`: live complaint/metric data boundary with offline fixture fallback.
+- `src/data/mockPlanning.ts`: remaining illustrative account metrics and fallback complaint statuses.
 - `src/data/mockAccounts.ts`, `mockComplaints.ts`, `operations.ts`: typed queue fixtures
   and the replaceable data boundary.
 - `src/types/pulse.ts`: API request/response contracts and separate frontend context types.
@@ -60,13 +61,13 @@ that workspace. The legacy URL remains a redirect, not a fourth product page.
 
 ## Data sources and provenance
 
-Accounts and their monthly histories are synthetic. Dashboard metrics, complaint
-records, and complaint statuses remain illustrative. Decision Twin calculations
-and evidence are returned by the backend using the supplied Northwind CSVs plus
-the planning brief. User-supplied budget, annual operating-cost budget, and
-overlap are inputs; Gemini proposes the available intervention mix and budget
-shares. The impact range is a visible backend planning assumption, not a
-Northwind-measured effect.
+Account histories and high-risk bill records are synthetic. Complaint records,
+routing fields, SLA risk, transfer risk, and aggregate metrics are returned by
+the backend using the supplied Northwind CSVs. Decision Twin calculations and
+evidence are also returned by the backend using those datasets plus the planning
+brief. User-supplied budget, annual operating-cost budget, and overlap are inputs;
+Gemini proposes the available intervention mix and priority shares. The impact
+range is a visible backend planning assumption, not a Northwind-measured effect.
 
 Ask Pulse calls the backend with the question. The backend sends only selected
 aggregate evidence to Gemini and returns evidence records with their source and

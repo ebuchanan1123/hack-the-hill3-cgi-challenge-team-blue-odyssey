@@ -69,8 +69,23 @@ def complaints(
     total = len(frame) if frame is not None else 0
     page = frame.iloc[offset : offset + limit] if frame is not None else None
     records = complaint_records(page)
+    enriched: list[dict] = []
+    for record in records:
+        routed = route_complaint(
+            {
+                "id": record.get("id", "unknown"),
+                "category": record.get("category", "Unknown"),
+                "region": record.get("region", "Unknown"),
+                "priority": record.get("priority", "P3"),
+                "daysOpen": record.get("daysToClose", 0) or 0,
+                "sourceSystem": record.get("sourceSystem"),
+                "slaDays": record.get("slaDays"),
+            },
+            frames,
+        )
+        enriched.append({**record, **routed})
     return {
-        "items": records,
+        "items": enriched,
         "total": total,
         "offset": offset,
         "limit": limit,

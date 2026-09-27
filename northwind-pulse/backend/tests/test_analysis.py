@@ -1,13 +1,40 @@
 """Tests for deterministic calculations using isolated fixture data."""
 
 import unittest
+from unittest.mock import patch
 
 import pandas as pd
+from fastapi.testclient import TestClient
 
+from app.main import app
 from app.services.analysis import analyze_data, complaint_records
 
 
 class AnalysisTests(unittest.TestCase):
+    def test_complaint_api_adds_deterministic_routing_fields(self) -> None:
+        complaints = pd.DataFrame(
+            {
+                "complaint_id": ["C1"],
+                "category": ["Billing - estimated read"],
+                "region": ["North"],
+                "priority": ["P1"],
+                "days_open": [12],
+                "source_system": ["SYS-01"],
+                "sla_days": [10],
+                "status": ["Open"],
+            }
+        )
+        with patch("app.main.data_loader.load", return_value=({"complaints": complaints}, {"status": "available"})):
+            response = TestClient(app).get("/api/complaints?limit=1")
+
+        self.assertEqual(response.status_code, 200)
+        item = response.json()["items"][0]
+        self.assertEqual(item["id"], "C1")
+        self.assertEqual(item["slaRisk"], "HIGH")
+        self.assertEqual(item["recommendedQueue"], "Meter & Billing Resolution")
+        self.assertEqual(item["nextAction"], "Validate meter reading")
+        self.assertTrue(any("estimated read" in reason for reason in item["reasons"]))
+
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(
             {
