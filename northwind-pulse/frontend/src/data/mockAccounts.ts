@@ -8,6 +8,8 @@ export const mockAccounts: PreventRiskAccount[] = [
   { accountId: "ACC-22619", expectedUsage: 580, estimatedUsage: 730, deviationPercent: 26, consecutiveEstimatedReads: 2, previousCorrection: true, risk: "MEDIUM", recommendedAction: "Review previous correction", reasons: ["Estimated usage is 730 kWh versus 580 kWh typical (+26%).", "Two estimates in a row plus a prior correction warrant manual review."] },
   { accountId: "ACC-40952", expectedUsage: 880, estimatedUsage: 1050, deviationPercent: 19, consecutiveEstimatedReads: 1, previousCorrection: false, risk: "MEDIUM", recommendedAction: "Review usage estimate", reasons: ["The estimate is 1,050 kWh versus 880 kWh typical (+19%).", "One estimated read is not conclusive, but seasonal context should be checked before billing."] },
   { accountId: "ACC-17305", expectedUsage: 760, estimatedUsage: 800, deviationPercent: 5, consecutiveEstimatedReads: 1, previousCorrection: false, risk: "LOW", recommendedAction: "Continue routine monitoring", reasons: ["Estimated usage is 800 kWh versus 760 kWh typical (+5%), a small variance.", "One estimate and no prior correction support routine monitoring rather than intervention."] },
+  { accountId: "ACC-28417", expectedUsage: 690, estimatedUsage: 740, deviationPercent: 7, consecutiveEstimatedReads: 1, previousCorrection: false, risk: "LOW", recommendedAction: "Continue routine monitoring", reasons: ["Estimated usage is 740 kWh versus 690 kWh typical (+7%), a small variance.", "No prior correction is recorded, so routine monitoring is appropriate."] },
+  { accountId: "ACC-39104", expectedUsage: 1020, estimatedUsage: 1090, deviationPercent: 7, consecutiveEstimatedReads: 2, previousCorrection: false, risk: "LOW", recommendedAction: "Continue routine monitoring", reasons: ["Estimated usage is 1,090 kWh versus 1,020 kWh typical (+7%).", "Two estimates are recorded, but the variance remains within routine review range."] },
 ];
 
 // Illustrative histories only. Not part of the frozen account API contract.
@@ -19,6 +21,8 @@ const recorded: Record<string, number[]> = {
   "ACC-22619": [550, 510, 460, 520, 560],
   "ACC-40952": [850, 780, 720, 790, 860],
   "ACC-17305": [740, 680, 620, 690, 730],
+  "ACC-28417": [670, 640, 620, 660, 680],
+  "ACC-39104": [990, 950, 920, 980, 1010],
 };
 const expected: Record<string, number[]> = {
   "ACC-18492": [800, 750, 700, 730, 780],
@@ -28,6 +32,8 @@ const expected: Record<string, number[]> = {
   "ACC-22619": [570, 530, 490, 530, 570],
   "ACC-40952": [870, 800, 750, 810, 870],
   "ACC-17305": [750, 690, 650, 710, 740],
+  "ACC-28417": [680, 650, 630, 670, 690],
+  "ACC-39104": [1000, 960, 930, 990, 1020],
 };
 export const mockUsageHistory: Record<string, UsagePoint[]> = Object.fromEntries(
   mockAccounts.map((account) => [account.accountId, [

@@ -16,7 +16,7 @@ function periodFocus(openOverdueCount: number) {
 
 export function Dashboard({ accounts, complaints, usageHistory, statuses, metrics, openOverdueCount }: OperationsData) {
   const [account, setAccount] = useState<PreventRiskAccount | null>(null); const [complaint, setComplaint] = useState<Complaint | null>(null); const [reviewedAccountIds, setReviewedAccountIds] = useState<string[]>(() => readReviewedAccountIds());
-  const reviewAccounts = accounts.filter((item) => !reviewedAccountIds.includes(item.accountId)).slice(0, 7); const highRisk = reviewAccounts.filter(a => a.risk === "HIGH").length;
+  const reviewAccounts = accounts.filter((item) => !reviewedAccountIds.includes(item.accountId)).slice(0, 5); const highRisk = reviewAccounts.filter(a => a.risk === "HIGH").length;
   function handleReviewSaved(accountId: string) { markAccountReviewed(accountId); setReviewedAccountIds((current) => current.includes(accountId) ? current : [...current, accountId]); setAccount(null); }
   const [learning, setLearning] = useState<{ complaintFeedbackCount: number; resolvedComplaintCount: number; accountReviewCount: number; rootCauses: string[]; message: string } | null>(null);
   useEffect(() => { fetch("/api/learning/summary").then((response) => response.ok ? response.json() : null).then((value) => setLearning(value)).catch(() => undefined); }, []);
