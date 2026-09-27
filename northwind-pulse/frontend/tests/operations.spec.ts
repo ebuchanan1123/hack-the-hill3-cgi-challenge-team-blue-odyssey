@@ -45,8 +45,9 @@ test("Complaint filters, search, and details", async ({ page }) => {
   await expect(page.locator("tbody tr")).toHaveCount(1);
   await page.getByRole("button", { name: "COMP-1001" }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByRole("heading", { name: "Why", exact: true })).toBeVisible();
-  await expect(dialog.getByText("This complaint is already 7 days overdue.")).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Complaint details", exact: true })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Recommended handling", exact: true })).toBeVisible();
+  await expect(dialog.getByText("Transfer likelihood", { exact: true })).not.toBeVisible();
   await expect(dialog.getByText("7 days overdue", { exact: true })).toBeVisible();
   await page.screenshot({ path: "artifacts/complaint-drawer.png", fullPage: true });
   await page.getByRole("button", { name: "Close details" }).click();

@@ -27,6 +27,12 @@ export interface Complaint {
   dateClosed?: string | null;
   resolutionAction?: string;
   billCorrectionValue?: number | null;
+  channel?: string;
+  sourceSystem?: string;
+  transferredBetweenSystems?: number | boolean | null;
+  slaBreach?: number | boolean | null;
+  reopened?: number | boolean | null;
+  accountId?: string;
 }
 
 /** Frontend demonstration context, separate from API payloads. */
