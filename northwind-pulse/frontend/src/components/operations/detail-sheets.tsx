@@ -4,6 +4,7 @@ import { DeadlineBadge, EvidenceDrawer, InfoControl, PriorityLabel, RiskBadge } 
 import { Button } from "@/components/ui/button";
 import { getDeadline } from "@/lib/deadline";
 import { UsageChart } from "./usage-chart";
+import { readReviewOutcome, saveReviewOutcome, type ReviewOutcome } from "@/lib/reviewed-accounts";
 import type { AccountReviewAction, Complaint, ComplaintStatus, PreventRiskAccount, ResolutionType, UsagePoint, WorkflowComplaintStatus } from "@/types/pulse";
 const n = new Intl.NumberFormat("en-CA");
 export function AccountDetailSheet({ account, history, onClose, onReviewSaved }: { account: PreventRiskAccount | null; history: UsagePoint[]; onClose: () => void; onReviewSaved?: (accountId: string) => void }) {
@@ -20,10 +21,11 @@ export function ComplaintDetailSheet({ complaint, status, onClose }: { complaint
 }
 
 function AccountReviewForm({ accountId, onSaved }: { accountId: string; onSaved?: (accountId: string) => void }) {
-  const [action, setAction] = useState<AccountReviewAction>("Held for validation");
-  const [correctedUsageKwh, setCorrectedUsageKwh] = useState("");
-  const [notes, setNotes] = useState(""); const [message, setMessage] = useState<string | null>(null); const [saving, setSaving] = useState(false);
-  async function save() { setSaving(true); setMessage(null); try { const response = await fetch(`/api/accounts/${encodeURIComponent(accountId)}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, correctedUsageKwh: correctedUsageKwh === "" ? undefined : Number(correctedUsageKwh), notes: notes.trim() || undefined }) }); const body = await response.json(); if (!response.ok) throw new Error(body.detail ?? "Could not save review outcome"); setMessage(body.message); onSaved?.(accountId); } catch (error) { setMessage(error instanceof Error ? error.message : "Could not save review outcome"); } finally { setSaving(false); } }
+  const [savedOutcome] = useState<ReviewOutcome | null>(() => readReviewOutcome(accountId));
+  const [action, setAction] = useState<AccountReviewAction>(savedOutcome?.action ?? "Held for validation");
+  const [correctedUsageKwh, setCorrectedUsageKwh] = useState(savedOutcome?.correctedUsageKwh === undefined ? "" : String(savedOutcome.correctedUsageKwh));
+  const [notes, setNotes] = useState(savedOutcome?.notes ?? ""); const [message, setMessage] = useState<string | null>(null); const [saving, setSaving] = useState(false);
+  async function save() { setSaving(true); setMessage(null); try { const outcome: ReviewOutcome = { action, correctedUsageKwh: correctedUsageKwh === "" ? undefined : Number(correctedUsageKwh), notes: notes.trim() || undefined }; const response = await fetch(`/api/accounts/${encodeURIComponent(accountId)}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(outcome) }); const body = await response.json(); if (!response.ok) throw new Error(body.detail ?? "Could not save review outcome"); saveReviewOutcome(accountId, outcome); setMessage("Review outcome updated and saved as prevention feedback."); onSaved?.(accountId); } catch (error) { setMessage(error instanceof Error ? error.message : "Could not save review outcome"); } finally { setSaving(false); } }
   const needsCorrectedUsage = action === "Meter reading requested" || action === "Escalated for manual review";
   return <section className="workflow-panel"><h3>Record pre-bill decision</h3><p>Save the outcome so this review can improve future prevention rules.</p><select aria-label="Pre-bill review outcome" value={action} onChange={event => setAction(event.target.value as AccountReviewAction)}><option>Cleared for billing</option><option>Held for validation</option><option>Meter reading requested</option><option>Escalated for manual review</option></select>{needsCorrectedUsage && <label className="workflow-field"><span>Corrected customer usage <b>kWh</b></span><input aria-label="Corrected customer usage in kWh" type="number" min="0" step="1" value={correctedUsageKwh} onChange={event => setCorrectedUsageKwh(event.target.value)} placeholder="For example: 870" /></label>}<label className="workflow-field"><span>Review notes</span><textarea aria-label="Pre-bill review notes" rows={2} value={notes} onChange={event => setNotes(event.target.value)} placeholder="What did the reviewer find?" /></label><Button type="button" onClick={() => void save()} disabled={saving || (needsCorrectedUsage && correctedUsageKwh === "")}>{saving ? "Saving..." : "Save review outcome"}</Button>{message && <p className="workflow-message" role="status">{message}</p>}</section>;
 }
