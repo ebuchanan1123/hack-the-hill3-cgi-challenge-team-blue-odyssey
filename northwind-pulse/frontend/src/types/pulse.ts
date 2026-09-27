@@ -51,6 +51,7 @@ export interface OperationsData {
   complaintTotal: number;
   complaintOffset: number;
   complaintLimit: number;
+  openOverdueCount: number;
 }
 
 export interface Metric {
