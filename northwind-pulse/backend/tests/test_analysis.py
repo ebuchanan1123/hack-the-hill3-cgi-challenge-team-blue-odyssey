@@ -52,6 +52,7 @@ class AnalysisTests(unittest.TestCase):
         with patch("app.main.data_loader.load", return_value=({"complaints": complaints}, {"status": "available"})):
             response = TestClient(app).get("/api/complaints?category=Billing&priority=P1&limit=10&sort=priority")
             recent_response = TestClient(app).get("/api/complaints?limit=2&sort=recent")
+            due_soon_response = TestClient(app).get("/api/complaints?status=Open&deadline=Due%20soon&limit=10")
 
         body = response.json()
         self.assertEqual(response.status_code, 200)
@@ -61,6 +62,9 @@ class AnalysisTests(unittest.TestCase):
 
         recent_items = recent_response.json()["items"]
         self.assertEqual([item["id"] for item in recent_items], ["C11", "C10"])
+        due_soon_body = due_soon_response.json()
+        self.assertEqual(due_soon_body["total"], 1)
+        self.assertEqual({item["id"] for item in due_soon_body["items"]}, {"C2"})
 
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(

@@ -2,6 +2,7 @@
 
 from typing import Literal
 
+import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -23,6 +24,16 @@ from app.services.strategy_generator import StrategyDataUnavailableError, genera
 
 app = FastAPI(title="Northwind Pulse API", version="0.1.0")
 data_loader = CSVDataLoader()
+
+
+def _complaint_age_days(frame):
+    opened = pd.to_datetime(frame["date_opened"], errors="coerce") if "date_opened" in frame.columns else pd.Series(index=frame.index, dtype="float64")
+    reference = opened.max()
+    ages = pd.to_numeric(frame.get("days_to_close"), errors="coerce") if "days_to_close" in frame.columns else pd.Series(index=frame.index, dtype="float64")
+    open_mask = frame.get("status", pd.Series(index=frame.index, dtype="string")).astype(str).str.lower().eq("open")
+    if pd.notna(reference):
+        ages = ages.where(~open_mask, (reference - opened).dt.days)
+    return ages
 
 
 class HealthResponse(BaseModel):
@@ -86,11 +97,11 @@ def complaints(
             filtered = filtered.loc[filtered["priority"].astype(str).eq(priority)]
         if status:
             filtered = filtered.loc[filtered["status"].astype(str).eq(status)]
+        complaint_ages = _complaint_age_days(frame).loc[filtered.index]
         if deadline:
             targets = {"P1": 5, "P2": 10, "P3": 20}
-            days_open = pd.to_numeric(filtered["days_to_close"], errors="coerce")
             target_days = filtered["priority"].astype(str).map(targets)
-            remaining = target_days - days_open
+            remaining = target_days - complaint_ages
             if deadline == "Overdue":
                 filtered = filtered.loc[remaining < 0]
             elif deadline == "Due soon":
@@ -114,14 +125,15 @@ def complaints(
     records = complaint_records(page)
     enriched: list[dict] = []
     route_context_cache: dict[str, dict[tuple[object, ...], object]] = {}
-    for record in records:
+    page_ages = _complaint_age_days(frame).loc[page.index].tolist() if page is not None else []
+    for record, age in zip(records, page_ages):
         routed = route_complaint(
             {
                 "id": record.get("id", "unknown"),
                 "category": record.get("category", "Unknown"),
                 "region": record.get("region", "Unknown"),
                 "priority": record.get("priority", "P3"),
-                "daysOpen": record.get("daysToClose", 0) or 0,
+                "daysOpen": age if pd.notna(age) else record.get("daysToClose", 0) or 0,
                 "sourceSystem": record.get("sourceSystem"),
                 "slaDays": record.get("slaDays"),
             },
