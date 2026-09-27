@@ -15,13 +15,13 @@ function normalizeStatus(status: unknown) {
   return (typeof status === "string" && status ? status : "Open") as ComplaintStatus;
 }
 
-async function getLiveOperationsData(): Promise<OperationsData> {
+export async function getLiveOperationsData(offset = 0, limit = 10): Promise<OperationsData> {
   const [complaintsResponse, metricsResponse] = await Promise.all([
-    fetch(`${backendUrl}/api/complaints?limit=1000`, { cache: "no-store" }),
+    fetch(`${backendUrl}/api/complaints?offset=${offset}&limit=${limit}`, { cache: "no-store" }),
     fetch(`${backendUrl}/api/metrics`, { cache: "no-store" }),
   ]);
   if (!complaintsResponse.ok || !metricsResponse.ok) throw new Error("Live operations data unavailable");
-  const complaintsBody = (await complaintsResponse.json()) as { items?: Complaint[] };
+  const complaintsBody = (await complaintsResponse.json()) as { items?: Complaint[]; total?: number; offset?: number; limit?: number };
   const metricsBody = (await metricsResponse.json()) as { complaintMetrics?: Record<string, number | null> };
   const complaints = complaintsBody.items ?? [];
   const complaintMetrics = metricsBody.complaintMetrics ?? {};
@@ -32,14 +32,14 @@ async function getLiveOperationsData(): Promise<OperationsData> {
     toMetric("Transferred complaints", complaintMetrics.transferRate, "%"),
     toMetric("Avg. time to resolve", complaintMetrics.averageResolutionDays, " days"),
   ];
-  return { accounts: mockAccounts, complaints, usageHistory: mockUsageHistory, metrics, statuses };
+  return { accounts: mockAccounts, complaints, usageHistory: mockUsageHistory, metrics, statuses, complaintTotal: complaintsBody.total ?? complaints.length, complaintOffset: complaintsBody.offset ?? offset, complaintLimit: complaintsBody.limit ?? limit };
 }
 
 /** Use live aggregate/complaint data when the backend is available; retain fixtures for offline demo startup. */
-export async function getOperationsData(): Promise<OperationsData> {
+export async function getOperationsData(offset = 0, limit = 10): Promise<OperationsData> {
   try {
-    return await getLiveOperationsData();
+    return await getLiveOperationsData(offset, limit);
   } catch {
-    return { accounts: mockAccounts, complaints: mockComplaints, usageHistory: mockUsageHistory, metrics: mockDashboardMetrics, statuses: mockStatuses };
+    return { accounts: mockAccounts, complaints: mockComplaints.slice(offset, offset + limit), usageHistory: mockUsageHistory, metrics: mockDashboardMetrics, statuses: mockStatuses, complaintTotal: mockComplaints.length, complaintOffset: offset, complaintLimit: limit };
   }
 }

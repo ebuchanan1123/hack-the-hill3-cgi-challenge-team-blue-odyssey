@@ -42,6 +42,9 @@ export interface OperationsData {
   usageHistory: Record<string, UsagePoint[]>;
   metrics: Metric[];
   statuses: Record<string, ComplaintStatus>;
+  complaintTotal: number;
+  complaintOffset: number;
+  complaintLimit: number;
 }
 
 export interface Metric {
