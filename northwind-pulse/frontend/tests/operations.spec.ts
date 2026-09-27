@@ -4,10 +4,11 @@ test("Operations and account drawer", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  await page.route("**/api/learning/summary", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ complaintFeedbackCount: 0, resolvedComplaintCount: 0, accountReviewCount: 0, rootCauses: [], message: "Saved outcomes become feedback for future prevention and routing decisions." }) }));
   await page.goto("/");
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { name: "Operations", exact: true })).toBeVisible();
-  await expect(page.getByRole("navigation").getByRole("link")).toHaveCount(3);
+  await expect(page.getByRole("navigation").getByRole("link")).toHaveCount(4);
   await page.getByRole("button", { name: "ACC-18492" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { name: "Why flagged" })).toBeVisible();
@@ -45,12 +46,54 @@ test("Complaint filters, search, and details", async ({ page }) => {
   await expect(page.locator("tbody tr")).toHaveCount(1);
   await page.getByRole("button", { name: "COMP-1001" }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByRole("heading", { name: "Why", exact: true })).toBeVisible();
-  await expect(dialog.getByText("This complaint is already 7 days overdue.")).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Complaint details", exact: true })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Recommended handling", exact: true })).toBeVisible();
+  await expect(dialog.getByText("Transfer likelihood", { exact: true })).not.toBeVisible();
   await expect(dialog.getByText("7 days overdue", { exact: true })).toBeVisible();
   await page.screenshot({ path: "artifacts/complaint-drawer.png", fullPage: true });
   await page.getByRole("button", { name: "Close details" }).click();
   await expect(dialog).not.toBeVisible();
+});
+
+test("Complaint and flagged-bill workflows save judge-facing feedback", async ({ page }) => {
+  await page.route("**/api/complaints/COMP-1001/workflow", async (route) => {
+    const body = route.request().postDataJSON();
+    expect(body.status).toBe("Resolved");
+    expect(body.resolutionType).toBe("Bill corrected");
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "COMP-1001", workflowStatus: "Resolved", message: "Resolution feedback saved for future prevention and routing." }) });
+  });
+  await page.route("**/api/accounts/ACC-18492/review", async (route) => {
+    const body = route.request().postDataJSON();
+    expect(body.action).toBe("Meter reading requested");
+    expect(body.correctedUsageKwh).toBe(870);
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ accountId: "ACC-18492", reviewStatus: body.action, correctedUsageKwh: body.correctedUsageKwh, message: "Pre-bill review outcome saved as prevention feedback." }) });
+  });
+  await page.route("**/api/learning/summary", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ complaintFeedbackCount: 1, resolvedComplaintCount: 1, accountReviewCount: 1, rootCauses: ["Estimated read"], message: "Saved outcomes become feedback for future prevention and routing decisions." }) }));
+
+  await page.goto("/complaints");
+  await page.getByRole("button", { name: "COMP-1001" }).click();
+  const complaintDialog = page.getByRole("dialog");
+  await complaintDialog.getByLabel("Complaint workflow status").selectOption({ label: "Resolved" });
+  await complaintDialog.getByLabel("Root cause").fill("Estimated read");
+  await complaintDialog.getByLabel("Resolution notes").fill("Bill corrected and re-issued.");
+  await complaintDialog.getByRole("button", { name: "Save resolution" }).click();
+  await expect(complaintDialog.getByText("Resolution feedback saved", { exact: false })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await page.goto("/flagged-bills");
+  await page.getByRole("button", { name: "ACC-18492" }).click();
+  const accountDialog = page.getByRole("dialog");
+  await accountDialog.getByLabel("Pre-bill review outcome").selectOption({ label: "Meter reading requested" });
+  await accountDialog.getByLabel("Corrected customer usage in kWh").fill("870");
+  await accountDialog.getByLabel("Pre-bill review notes").fill("Actual reading corrected the estimate.");
+  await accountDialog.getByRole("button", { name: "Save review outcome" }).click();
+  await expect(accountDialog).not.toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByLabel("Review state").selectOption("reviewed");
+  await page.getByRole("button", { name: "ACC-18492" }).click();
+  const reopenedAccount = page.getByRole("dialog");
+  await expect(reopenedAccount.getByLabel("Corrected customer usage in kWh")).toHaveValue("870");
+  await expect(reopenedAccount.getByLabel("Pre-bill review notes")).toHaveValue("Actual reading corrected the estimate.");
 });
 
 test("Decision Twin sends a brief, renders Gemini options, and asks grounded questions", async ({ page }) => {

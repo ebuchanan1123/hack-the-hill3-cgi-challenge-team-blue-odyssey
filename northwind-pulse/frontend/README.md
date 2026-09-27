@@ -66,8 +66,10 @@ routing fields, SLA risk, transfer risk, and aggregate metrics are returned by
 the backend using the supplied Northwind CSVs. Decision Twin calculations and
 evidence are also returned by the backend using those datasets plus the planning
 brief. User-supplied budget, annual operating-cost budget, and overlap are inputs;
-Gemini proposes the available intervention mix and priority shares. The impact
-range is a visible backend planning assumption, not a Northwind-measured effect.
+Gemini proposes the available intervention mix and priority shares. The backend
+scales rollout coverage and modeled impact with available budget capacity. The
+impact range is a visible backend planning assumption, not a Northwind-measured
+effect.
 
 Ask Pulse calls the backend with the question. The backend sends only selected
 aggregate evidence to Gemini and returns evidence records with their source and

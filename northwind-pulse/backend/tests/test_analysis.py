@@ -67,6 +67,23 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(due_soon_body["total"], 1)
         self.assertEqual({item["id"] for item in due_soon_body["items"]}, {"C2"})
 
+    def test_workflow_endpoints_save_resolution_and_review_feedback(self) -> None:
+        with patch("app.main.data_loader.load", return_value=({"complaints": pd.DataFrame({"complaint_id": ["C1"]})}, {"status": "available"})):
+            progress = TestClient(app).patch("/api/complaints/C1/workflow", json={"status": "In progress", "notes": "Assigned to billing resolution"})
+            missing_resolution = TestClient(app).patch("/api/complaints/C1/workflow", json={"status": "Resolved"})
+            resolved = TestClient(app).patch("/api/complaints/C1/workflow", json={"status": "Resolved", "resolutionType": "Bill corrected", "rootCause": "Estimated read", "notes": "Bill corrected and re-issued"})
+            review = TestClient(app).patch("/api/accounts/ACC-1/review", json={"action": "Meter reading requested", "correctedUsageKwh": 870, "notes": "Reading was incorrect"})
+
+        self.assertEqual(progress.status_code, 200)
+        self.assertEqual(missing_resolution.status_code, 422)
+        self.assertEqual(resolved.status_code, 200)
+        self.assertIn("feedback", resolved.json()["message"])
+        self.assertEqual(review.status_code, 200)
+        self.assertEqual(review.json()["correctedUsageKwh"], 870)
+        learning = TestClient(app).get("/api/learning/summary")
+        self.assertEqual(learning.status_code, 200)
+        self.assertEqual(learning.json()["accountReviewCount"], 1)
+
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(
             {

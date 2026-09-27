@@ -27,6 +27,12 @@ export interface Complaint {
   dateClosed?: string | null;
   resolutionAction?: string;
   billCorrectionValue?: number | null;
+  channel?: string;
+  sourceSystem?: string;
+  transferredBetweenSystems?: number | boolean | null;
+  slaBreach?: number | boolean | null;
+  reopened?: number | boolean | null;
+  accountId?: string;
 }
 
 /** Frontend demonstration context, separate from API payloads. */
@@ -57,6 +63,9 @@ export interface Metric {
 
 /** Frontend-only status context; deliberately separate from Complaint wire shape. */
 export type ComplaintStatus = "Open" | "In review" | "Awaiting meter reading" | "Closed" | "Closed - reopened";
+export type WorkflowComplaintStatus = "Open" | "In progress" | "Resolved";
+export type ResolutionType = "Bill corrected" | "Meter reading confirmed" | "Information provided" | "Escalated" | "Other";
+export type AccountReviewAction = "Cleared for billing" | "Held for validation" | "Meter reading requested" | "Escalated for manual review";
 export interface AskPulseEvidence {
   id: string;
   label: string;

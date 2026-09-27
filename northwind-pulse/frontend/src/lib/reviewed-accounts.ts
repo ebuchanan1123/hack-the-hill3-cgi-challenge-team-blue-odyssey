@@ -1,0 +1,45 @@
+const REVIEWED_ACCOUNTS_KEY = "northwind-pulse.reviewed-accounts";
+const REVIEW_OUTCOMES_KEY = "northwind-pulse.review-outcomes";
+
+export interface ReviewOutcome {
+  action: "Cleared for billing" | "Held for validation" | "Meter reading requested" | "Escalated for manual review";
+  correctedUsageKwh?: number;
+  notes?: string;
+}
+
+export function readReviewedAccountIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const value: unknown = JSON.parse(window.localStorage.getItem(REVIEWED_ACCOUNTS_KEY) ?? "[]");
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markAccountReviewed(accountId: string) {
+  const reviewed = new Set(readReviewedAccountIds());
+  reviewed.add(accountId);
+  window.localStorage.setItem(REVIEWED_ACCOUNTS_KEY, JSON.stringify([...reviewed]));
+}
+
+export function readReviewOutcome(accountId: string): ReviewOutcome | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value: unknown = JSON.parse(window.localStorage.getItem(REVIEW_OUTCOMES_KEY) ?? "{}");
+    if (!value || typeof value !== "object") return null;
+    const outcome = (value as Record<string, unknown>)[accountId];
+    return outcome && typeof outcome === "object" ? outcome as ReviewOutcome : null;
+  } catch { return null; }
+}
+
+export function saveReviewOutcome(accountId: string, outcome: ReviewOutcome) {
+  if (typeof window === "undefined") return;
+  let outcomes: Record<string, ReviewOutcome> = {};
+  try {
+    const value: unknown = JSON.parse(window.localStorage.getItem(REVIEW_OUTCOMES_KEY) ?? "{}");
+    if (value && typeof value === "object") outcomes = value as Record<string, ReviewOutcome>;
+  } catch { /* Reset malformed demo storage. */ }
+  outcomes[accountId] = outcome;
+  window.localStorage.setItem(REVIEW_OUTCOMES_KEY, JSON.stringify(outcomes));
+}

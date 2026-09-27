@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from app.models.ask_pulse import AskPulseRequest, AskPulseResponse
 from app.models.scenarios import StrategySimulationRequest
 from app.models.strategy_generation import StrategyGenerationRequest
+from app.models.workflow import AccountReviewUpdate, ComplaintWorkflowUpdate
 from app.services.analysis import analyze_data, complaint_records
 from app.services.ask_pulse import (
     GeminiNotConfiguredError,
@@ -21,6 +22,7 @@ from app.services.routing import route_complaint
 from app.services.scenarios import simulate_scenarios
 from app.services.strategy import build_investment_strategy
 from app.services.strategy_generator import StrategyDataUnavailableError, generate_investment_strategy
+from app.services.workflow import get_account_review, learning_summary, merge_complaint_update, save_account_review, save_complaint_update
 
 app = FastAPI(title="Northwind Pulse API", version="0.1.0")
 data_loader = CSVDataLoader()
@@ -140,7 +142,7 @@ def complaints(
             frames,
             route_context_cache,
         )
-        enriched.append({**record, **routed})
+        enriched.append(merge_complaint_update({**record, **routed, "status": record.get("workflowStatus", record.get("status"))}))
     return {
         "items": enriched,
         "total": total,
@@ -163,7 +165,35 @@ def complaint(complaint_id: str) -> dict:
     matching = frame.loc[frame[id_col].astype(str).eq(complaint_id)]
     if matching.empty:
         raise HTTPException(status_code=404, detail="Complaint not found")
-    return complaint_records(matching)[0]
+    return merge_complaint_update(complaint_records(matching)[0])
+
+
+@app.patch("/api/complaints/{complaint_id}/workflow", tags=["Complaint resolution"])
+def update_complaint_workflow(complaint_id: str, request: ComplaintWorkflowUpdate) -> dict:
+    frames, _ = data_loader.load()
+    frame = frames.get("complaints")
+    if frame is None or not frame["complaint_id"].astype(str).eq(complaint_id).any():
+        raise HTTPException(status_code=404, detail="Complaint not found")
+    if request.status == "Resolved" and not request.resolutionType:
+        raise HTTPException(status_code=422, detail="Resolution type is required when resolving a complaint")
+    saved = save_complaint_update(complaint_id, request.model_dump(exclude_none=True))
+    return {"id": complaint_id, **saved, "message": "Resolution feedback saved for future prevention and routing."}
+
+
+@app.patch("/api/accounts/{account_id}/review", tags=["Prevention"])
+def update_account_review(account_id: str, request: AccountReviewUpdate) -> dict:
+    saved = save_account_review(account_id, request.model_dump(exclude_none=True))
+    return {"accountId": account_id, **saved, "message": "Pre-bill review outcome saved as prevention feedback."}
+
+
+@app.get("/api/accounts/{account_id}/review", tags=["Prevention"])
+def account_review(account_id: str) -> dict:
+    return {"accountId": account_id, **(get_account_review(account_id) or {})}
+
+
+@app.get("/api/learning/summary", tags=["Learning"])
+def learning() -> dict:
+    return learning_summary()
 
 
 @app.post("/api/route", tags=["Complaint resolution"])

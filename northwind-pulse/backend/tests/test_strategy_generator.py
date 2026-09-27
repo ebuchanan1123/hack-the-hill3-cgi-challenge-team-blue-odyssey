@@ -69,17 +69,29 @@ class StrategyGeneratorTests(unittest.TestCase):
 
         self.assertEqual(result["aiStrategy"]["title"], "Billing reliability first")
         suggestions = result["aiStrategy"]["recommendedInterventions"]
-        self.assertEqual([item["id"] for item in suggestions], ["targeted-validation", "meterhub-improvement"])
-        self.assertEqual(suggestions[0]["suggestedAllocationUsd"], 8160)
-        self.assertEqual(suggestions[1]["suggestedAllocationUsd"], 16320)
+        self.assertEqual([item["id"] for item in suggestions[:2]], ["targeted-validation", "meterhub-improvement"])
+        self.assertIn("targeted-smart-meter-deployment", [item["id"] for item in suggestions])
+        self.assertEqual(suggestions[0]["suggestedAllocationUsd"], 40800)
+        self.assertEqual(suggestions[1]["suggestedAllocationUsd"], 30000)
         self.assertEqual(result["confidenceStrategies"][1]["budgetUsd"], 100000)
         self.assertLessEqual(result["confidenceStrategies"][1]["annualOperatingCostUsd"], 9000)
-        self.assertGreater(result["confidenceStrategies"][1]["allocatedUsd"], 0)
+        self.assertGreater(suggestions[0]["suggestedAllocationUsd"], 0)
         self.assertTrue(any("Gemini does not calculate dollar values, savings, ROI, or payback" in item for item in result["assumptions"]))
         prompt = client.interactions.last_request["input"]
         self.assertIn(self.request.priorities, prompt)
         self.assertIn("Do not calculate or state ROI", client.interactions.last_request["system_instruction"])
         self.assertFalse(client.interactions.last_request["store"])
+
+    def test_larger_budget_funds_more_rollout_capacity(self) -> None:
+        small_request = self.request.model_copy(update={"budgetUsd": 100000})
+        large_request = self.request.model_copy(update={"budgetUsd": 1_000_000})
+        scaled_frames = {**self.frames, "complaints": pd.concat([self.frames["complaints"]] * 20, ignore_index=True)}
+        small = generate_investment_strategy(scaled_frames, self.availability, small_request, client=FakeGeminiClient(self.proposal))
+        large = generate_investment_strategy(scaled_frames, self.availability, large_request, client=FakeGeminiClient(self.proposal))
+        small_base = small["confidenceStrategies"][1]
+        large_base = large["confidenceStrategies"][1]
+        self.assertGreater(large_base["allocatedUsd"], small_base["allocatedUsd"])
+        self.assertGreater(large_base["annualNetSavingsUsd"], small_base["annualNetSavingsUsd"])
 
     def test_recommendation_weights_over_one_hundred_are_normalized(self) -> None:
         proposal = self.proposal | {
