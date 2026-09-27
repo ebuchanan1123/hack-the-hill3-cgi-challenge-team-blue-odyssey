@@ -348,10 +348,18 @@ dd { color: var(--ink); font-size: 13px; }
 .strategy-priorities textarea { width: 100%; min-height: 68px; resize: vertical; padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink); font: inherit; font-size: 11px; line-height: 1.55; }
 .strategy-results { margin-top: 22px; padding-top: 19px; border-top: 1px solid var(--line-soft); }
 .strategy-result-header h3 { margin-top: 5px; color: var(--ink); font-family: var(--font-title); font-size: 20px; font-weight: 500; }
+.strategy-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+.source-badge { display: inline-flex; align-items: center; padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; font-size: 8px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.source-gemini { color: var(--accent-strong); background: var(--accent-soft); border-color: #d6e3f4; }
+.source-calculated { color: var(--green); background: #eef7f1; border-color: #d7e9dd; }
+.source-assumption { color: #80621e; background: #fbf6e9; border-color: #eee1c5; }
 .confidence-select { display: grid; gap: 5px; color: var(--ink-3); font-size: 10px; white-space: nowrap; }
 .confidence-select select { height: 31px; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink-2); font-size: 11px; }
 .strategy-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 15px; }
 .strategy-kpis > div { min-width: 0; padding: 12px; border: 1px solid var(--line-soft); border-radius: var(--radius-inner); background: var(--surface-tint); }
+.strategy-kpis .info-control { vertical-align: -2px; margin-left: 2px; }
+.strategy-kpis .info-control > summary { display: inline-grid; padding: 1px; color: var(--ink-3); }
+.strategy-kpis .info-popover { top: 22px; width: 220px; font-weight: 400; text-transform: none; letter-spacing: 0; }
 .strategy-kpis span, .strategy-kpis small { display: block; color: var(--ink-3); font-size: 10px; line-height: 1.4; }
 .strategy-kpis strong { display: block; margin: 7px 0 5px; color: var(--ink); font-size: clamp(15px, 2vw, 21px); font-weight: 600; overflow-wrap: anywhere; }
 .ai-recommendation-list, .strategy-allocation-list { display: grid; gap: 8px; margin-top: 14px; padding: 0; list-style: none; }

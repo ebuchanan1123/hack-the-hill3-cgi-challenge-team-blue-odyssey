@@ -201,7 +201,7 @@ function StrategyResults({
   return (
     <section className="strategy-results" aria-live="polite" aria-labelledby="strategy-results-title">
       <header className="strategy-result-header">
-        <div><span className="result-eyebrow">Recommended options · Calculated results</span><h3 id="strategy-results-title">{result.aiStrategy.title}</h3><p>{result.aiStrategy.summary}</p></div>
+        <div><div className="strategy-badges"><span className="source-badge source-gemini">Gemini suggestion</span><span className="source-badge source-calculated">Backend calculation</span><span className="source-badge source-assumption">Planning assumptions</span></div><h3 id="strategy-results-title">{result.aiStrategy.title}</h3><p>{result.aiStrategy.summary}</p></div>
         <label className="confidence-select"><span>Scenario case</span><select aria-label="Scenario confidence case" value={confidence} onChange={(event) => setConfidence(event.target.value as ConfidenceLevel)}>{result.confidenceStrategies.map((item) => <option value={item.confidence} key={item.confidence}>{item.confidence[0] + item.confidence.slice(1).toLowerCase()}</option>)}</select></label>
       </header>
 
@@ -216,10 +216,10 @@ function StrategyResults({
       </div>
 
       <div className="strategy-kpis">
-        <div><span>Investment allocated</span><strong>{formatMoney(selected.allocatedUsd, true)}</strong><small>{formatMoney(selected.unallocatedBudgetUsd, true)} budget remaining</small></div>
-        <div><span>Annual net savings</span><strong>{formatMoney(selected.annualNetSavingsUsd, true)}</strong><small>after annual operating costs</small></div>
-        <div><span>Net benefit · {selected.horizonMonths} months</span><strong>{formatMoney(selected.horizonNetBenefitUsd, true)}</strong><small>after investment and operating costs</small></div>
-        <div><span>Simple payback</span><strong>{displayPayback(selected.paybackMonths)}</strong><small>ROI: {selected.roiPercent === null ? "—" : `${percent.format(selected.roiPercent)}%`}</small></div>
+        <div><span>Investment allocated <InfoControl label="Investment allocated definition">The one-time implementation investment selected by the deterministic calculator.</InfoControl></span><strong>{formatMoney(selected.allocatedUsd, true)}</strong><small>{formatMoney(selected.unallocatedBudgetUsd, true)} budget remaining</small></div>
+        <div><span>Annual net savings <InfoControl label="Annual net savings definition">Projected annual gross savings after annual operating costs.</InfoControl></span><strong>{formatMoney(selected.annualNetSavingsUsd, true)}</strong><small>after annual operating costs</small></div>
+        <div><span>Net benefit · {selected.horizonMonths} months <InfoControl label="Net benefit definition">Savings over the selected horizon minus the initial investment and operating costs.</InfoControl></span><strong>{formatMoney(selected.horizonNetBenefitUsd, true)}</strong><small>after investment and operating costs</small></div>
+        <div><span>Simple payback <InfoControl label="Simple payback definition">Months until cumulative annual net savings recover the initial investment.</InfoControl></span><strong>{displayPayback(selected.paybackMonths)}</strong><small>ROI: {selected.roiPercent === null ? "—" : `${percent.format(selected.roiPercent)}%`}</small></div>
       </div>
       {selected.allocations.length === 0 ? (
         <div className="no-investment"><strong>No investment recommended for this case.</strong><p>Gemini’s suggestions are listed above, but none has positive projected net benefit for the selected objective, budget, and horizon. Review the brief, costs, or impact assumptions.</p></div>
