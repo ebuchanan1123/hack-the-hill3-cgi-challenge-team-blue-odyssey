@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/pulse/shared";
 import { AccountDetailSheet } from "./detail-sheets";
 import { AccountRiskTable } from "./operations-tables";
 import { mockAccounts, mockUsageHistory } from "@/data/mockAccounts";
-import { markAccountReviewed, readReviewedAccountIds, subscribeReviewedAccounts } from "@/lib/reviewed-accounts";
+import { clearReviewedAccounts, markAccountReviewed, readReviewedAccountIds, subscribeReviewedAccounts } from "@/lib/reviewed-accounts";
 import type { PreventRiskAccount } from "@/types/pulse";
 
 export function FlaggedBills() {
@@ -35,6 +35,7 @@ export function FlaggedBills() {
 
   const active = query.trim() !== "" || risk !== "all" || reviewState !== "active" || sort !== "risk";
   function reset() { setQuery(""); setRisk("all"); setReviewState("active"); setSort("risk"); }
+  function resetReviewState() { clearReviewedAccounts(); setReviewState("active"); }
 
   return <>
     <PageHeader title="Flagged bills" />
@@ -45,6 +46,7 @@ export function FlaggedBills() {
         <label className="sort-control"><span>Review</span><select aria-label="Review state" value={reviewState} onChange={(event) => setReviewState(event.target.value)}><option value="active">Active</option><option value="reviewed">Reviewed</option><option value="all">All</option></select></label>
         <label className="sort-control"><span>Sort by</span><select aria-label="Sort flagged bills" value={sort} onChange={(event) => setSort(event.target.value)}><option value="risk">Highest risk</option><option value="variance">Largest variance</option><option value="estimates">Most estimated reads</option><option value="account">Account ID</option></select></label>
         {active && <button type="button" className="clear-filters" onClick={reset} aria-label="Clear flagged bill filters" title="Clear filters"><X size={13} aria-hidden="true" /><span className="clear-text">Clear</span></button>}
+        {reviewedIds.length > 0 && <button type="button" className="clear-filters" onClick={resetReviewState}>Reset reviewed bills</button>}
       </div>
       <p className="table-count" role="status">{rows.length} flagged accounts</p>
     </div>

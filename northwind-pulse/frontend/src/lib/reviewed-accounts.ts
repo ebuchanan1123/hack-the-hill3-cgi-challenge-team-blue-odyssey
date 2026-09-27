@@ -56,3 +56,11 @@ export function saveReviewOutcome(accountId: string, outcome: ReviewOutcome) {
   outcomes[accountId] = outcome;
   window.localStorage.setItem(REVIEW_OUTCOMES_KEY, JSON.stringify(outcomes));
 }
+
+export function clearReviewedAccounts() {
+  if (typeof window === "undefined") return;
+  cachedReviewedIds = [];
+  window.localStorage.removeItem(REVIEWED_ACCOUNTS_KEY);
+  window.localStorage.removeItem(REVIEW_OUTCOMES_KEY);
+  window.dispatchEvent(new Event(REVIEW_UPDATED_EVENT));
+}
