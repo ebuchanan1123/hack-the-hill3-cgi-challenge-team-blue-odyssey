@@ -113,10 +113,10 @@ def complaints(
         if sort == "status":
             filtered = filtered.assign(_sort=filtered["status"].astype(str).map(lambda value: 0 if value.lower() == "open" else 1)).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
         elif sort == "priority":
-            filtered = filtered.assign(_sort=filtered["priority"].astype(str).map({"P1": 0, "P2": 1, "P3": 2}).fillna(3)).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
+            filtered = filtered.assign(_priority=filtered["priority"].astype(str).map({"P1": 0, "P2": 1, "P3": 2}).fillna(3), _age=complaint_ages).sort_values(["_priority", "_age"], ascending=[True, False]).drop(columns=["_priority", "_age"])
         elif sort == "deadline":
             targets = {"P1": 5, "P2": 10, "P3": 20}
-            remaining = filtered["priority"].astype(str).map(targets) - pd.to_numeric(filtered["days_to_close"], errors="coerce")
+            remaining = filtered["priority"].astype(str).map(targets) - complaint_ages
             filtered = filtered.assign(_sort=remaining).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
         elif sort == "recent" and "date_opened" in filtered.columns:
             filtered = filtered.sort_values("date_opened", ascending=False)

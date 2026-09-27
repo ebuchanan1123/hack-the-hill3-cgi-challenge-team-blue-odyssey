@@ -59,6 +59,7 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(body["total"], 3)
         self.assertEqual(len(body["items"]), 3)
         self.assertTrue(all(item["priority"] == "P1" for item in body["items"]))
+        self.assertEqual([item["id"] for item in body["items"]], ["C1", "C4", "C10"])
 
         recent_items = recent_response.json()["items"]
         self.assertEqual([item["id"] for item in recent_items], ["C11", "C10"])
