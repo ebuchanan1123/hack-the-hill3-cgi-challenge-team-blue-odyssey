@@ -37,12 +37,17 @@ export interface OperationsData {
   usageHistory: Record<string, UsagePoint[]>;
 }
 
+/** Dashboard KPI with a short recent trend (oldest to newest). */
+export interface Metric { label: string; value: string; trend: number[]; change: string; improving: boolean }
+
 /** Frontend-only status context; deliberately separate from Complaint wire shape. */
 export type ComplaintStatus = "Open" | "In review" | "Awaiting meter reading";
-export interface EvidenceValue { label: string; value: string; source: "Scenario assumption" | "Illustrative aggregate" | "Calculated value"; }
+export interface EvidenceValue { label: string; value: string; source: "Northwind data" | "Calculated" | "Scenario assumption"; }
 export interface MockPlan {
   id: string;
   title: string;
+  /** One-line reason this plan fits the question. */
+  rationale: string;
   items: { name: string; investment: string }[];
   summary: { label: string; value: string }[];
   assumptions: EvidenceValue[];
