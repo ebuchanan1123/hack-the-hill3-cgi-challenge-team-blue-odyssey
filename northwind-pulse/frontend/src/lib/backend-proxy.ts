@@ -1,6 +1,6 @@
 const BACKEND_URL = (process.env.NORTHWIND_BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
 
-export type BackendEndpoint = "/api/ask-pulse" | "/api/simulate" | "/api/strategy/generate";
+export type BackendEndpoint = "/api/simulate" | "/api/strategy/generate";
 export type BackendGetEndpoint = "/api/complaints";
 export type BackendLearningEndpoint = "/api/learning/summary";
 

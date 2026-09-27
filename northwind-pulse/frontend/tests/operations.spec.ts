@@ -161,19 +161,6 @@ test("Decision Twin sends a brief, renders Gemini options, and asks grounded que
     });
   });
 
-  await page.route("**/api/ask-pulse", (route) => route.fulfill({
-    status: 200,
-    contentType: "application/json",
-    body: JSON.stringify({
-      question: "How do transfers relate to resolution time?",
-      answer: "Transferred cases took longer on average in the observed complaint data. This is an association, not proof of cause.",
-      evidence: [{ id: "transfers.transferred.averageResolutionDays", label: "Transferred: average days to close", value: "38.24 days", source: "northwind_complaints.csv", period: null, evidenceType: "derivedMetric" }],
-      caveats: ["This comparison does not establish causation."],
-      suggestedFollowUps: ["Compare reopening rates"],
-      grounding: "grounded",
-    }),
-  }));
-
   await page.goto("/decision-twin");
   await expect(page.getByRole("heading", { name: "Investment strategy generator" })).toBeVisible();
   await expect(page.getByRole("checkbox")).toHaveCount(0);
@@ -215,20 +202,6 @@ test("Decision Twin sends a brief, renders Gemini options, and asks grounded que
   await page.getByRole("button", { name: "Compare cases" }).click();
   await expect(page.getByRole("dialog").getByRole("columnheader", { name: "Upside" })).toBeVisible();
   await page.keyboard.press("Escape");
-  const askLauncher = page.getByRole("button", { name: "Ask Pulse", exact: true });
-  await expect(askLauncher).toBeVisible();
-  await expect(askLauncher).toHaveAttribute("aria-expanded", "false");
-  await expect(page.getByRole("heading", { name: "Ask Pulse" })).not.toBeVisible();
-  await askLauncher.click();
-  await expect(page.getByRole("heading", { name: "Ask Pulse" })).toBeVisible();
-  await page.getByRole("textbox", { name: "Ask Pulse question" }).fill("How do transfers relate to resolution time?");
-  await page.getByRole("button", { name: "Send question" }).click();
-  await expect(page.getByText("Evidence-grounded answer")).toBeVisible();
-  await expect(page.getByText("38.24 days")).toBeVisible();
-  await expect(page.getByText("This comparison does not establish causation.")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(askLauncher).toHaveAttribute("aria-expanded", "false");
-  await expect(askLauncher).toBeFocused();
   await page.screenshot({ path: "artifacts/decision-twin-live.png", fullPage: true });
   expect(errors).toEqual([]);
 });
@@ -240,9 +213,6 @@ test("Mobile routes and legacy redirect", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
-  await page.getByRole("button", { name: "Ask Pulse", exact: true }).click();
-  await page.getByLabel("Ask Pulse privacy and limits", { exact: true }).click();
-  expect(await page.locator(".info-control[open] .info-body").evaluate(el => el.getBoundingClientRect().height > 0)).toBe(true);
   await page.goto("/operations");
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.getByRole("button", { name: "ACC-18492" }).click();
