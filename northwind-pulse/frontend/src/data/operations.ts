@@ -15,9 +15,9 @@ function normalizeStatus(status: unknown) {
   return (typeof status === "string" && status ? status : "Open") as ComplaintStatus;
 }
 
-export async function getLiveOperationsData(offset = 0, limit = 10): Promise<OperationsData> {
+export async function getLiveOperationsData(offset = 0, limit = 10, params = ""): Promise<OperationsData> {
   const [complaintsResponse, metricsResponse] = await Promise.all([
-    fetch(`${backendUrl}/api/complaints?offset=${offset}&limit=${limit}`, { cache: "no-store" }),
+    fetch(`${backendUrl}/api/complaints?offset=${offset}&limit=${limit}${params}`, { cache: "no-store" }),
     fetch(`${backendUrl}/api/metrics`, { cache: "no-store" }),
   ]);
   if (!complaintsResponse.ok || !metricsResponse.ok) throw new Error("Live operations data unavailable");
@@ -36,9 +36,9 @@ export async function getLiveOperationsData(offset = 0, limit = 10): Promise<Ope
 }
 
 /** Use live aggregate/complaint data when the backend is available; retain fixtures for offline demo startup. */
-export async function getOperationsData(offset = 0, limit = 10): Promise<OperationsData> {
+export async function getOperationsData(offset = 0, limit = 10, params = ""): Promise<OperationsData> {
   try {
-    return await getLiveOperationsData(offset, limit);
+    return await getLiveOperationsData(offset, limit, params);
   } catch {
     return { accounts: mockAccounts, complaints: mockComplaints.slice(offset, offset + limit), usageHistory: mockUsageHistory, metrics: mockDashboardMetrics, statuses: mockStatuses, complaintTotal: mockComplaints.length, complaintOffset: offset, complaintLimit: limit };
   }

@@ -35,6 +35,28 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(item["nextAction"], "Validate meter reading")
         self.assertTrue(any("estimated read" in reason for reason in item["reasons"]))
 
+    def test_complaint_api_filters_before_pagination_and_sorts_priority(self) -> None:
+        complaints = pd.DataFrame(
+            {
+                "complaint_id": [f"C{index}" for index in range(12)],
+                "category": ["Billing"] * 12,
+                "region": ["North"] * 12,
+                "priority": ["P3", "P1", "P2", "P3", "P1", "P2", "P3", "P3", "P2", "P3", "P1", "P3"],
+                "days_open": list(range(12)),
+                "source_system": ["SYS-01"] * 12,
+                "sla_days": [20] * 12,
+                "status": ["Open"] * 12,
+            }
+        )
+        with patch("app.main.data_loader.load", return_value=({"complaints": complaints}, {"status": "available"})):
+            response = TestClient(app).get("/api/complaints?category=Billing&priority=P1&limit=10&sort=priority")
+
+        body = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(body["total"], 3)
+        self.assertEqual(len(body["items"]), 3)
+        self.assertTrue(all(item["priority"] == "P1" for item in body["items"]))
+
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(
             {

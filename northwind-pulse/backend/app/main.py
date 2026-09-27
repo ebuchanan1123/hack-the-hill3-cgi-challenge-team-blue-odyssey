@@ -63,11 +63,52 @@ def metrics() -> dict:
 def complaints(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=1000),
+    search: str | None = Query(default=None, max_length=200),
+    category: str | None = Query(default=None, max_length=120),
+    region: str | None = Query(default=None, max_length=120),
+    priority: str | None = Query(default=None, max_length=20),
+    status: str | None = Query(default=None, max_length=40),
+    sort: str = Query(default="recent", pattern="^(recent|status|priority|deadline)$"),
+    deadline: str | None = Query(default=None, max_length=20),
 ) -> dict:
     frames, availability = data_loader.load()
     frame = frames.get("complaints")
-    total = len(frame) if frame is not None else 0
-    page = frame.iloc[offset : offset + limit] if frame is not None else None
+    filtered = frame.copy() if frame is not None else None
+    if filtered is not None:
+        text = filtered.astype(str).agg(" ".join, axis=1).str.lower()
+        if search:
+            filtered = filtered.loc[text.str.contains(search.strip().lower(), regex=False, na=False)]
+        if category:
+            filtered = filtered.loc[filtered["category"].astype(str).eq(category)]
+        if region:
+            filtered = filtered.loc[filtered["region"].astype(str).eq(region)]
+        if priority:
+            filtered = filtered.loc[filtered["priority"].astype(str).eq(priority)]
+        if status:
+            filtered = filtered.loc[filtered["status"].astype(str).eq(status)]
+        if deadline:
+            targets = {"P1": 5, "P2": 10, "P3": 20}
+            days_open = pd.to_numeric(filtered["days_to_close"], errors="coerce")
+            target_days = filtered["priority"].astype(str).map(targets)
+            remaining = target_days - days_open
+            if deadline == "Overdue":
+                filtered = filtered.loc[remaining < 0]
+            elif deadline == "Due soon":
+                filtered = filtered.loc[remaining.ge(0) & remaining.le(2)]
+            elif deadline == "On track":
+                filtered = filtered.loc[remaining > 2]
+        sort_columns = ["_sort", "date_opened"] if "date_opened" in filtered.columns else ["_sort"]
+        sort_ascending = [True, False] if len(sort_columns) == 2 else [True]
+        if sort == "status":
+            filtered = filtered.assign(_sort=filtered["status"].astype(str).map(lambda value: 0 if value.lower() == "open" else 1)).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
+        elif sort == "priority":
+            filtered = filtered.assign(_sort=filtered["priority"].astype(str).map({"P1": 0, "P2": 1, "P3": 2}).fillna(3)).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
+        elif sort == "deadline":
+            targets = {"P1": 5, "P2": 10, "P3": 20}
+            remaining = filtered["priority"].astype(str).map(targets) - pd.to_numeric(filtered["days_to_close"], errors="coerce")
+            filtered = filtered.assign(_sort=remaining).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
+    total = len(filtered) if filtered is not None else 0
+    page = filtered.iloc[offset : offset + limit] if filtered is not None else None
     records = complaint_records(page)
     enriched: list[dict] = []
     route_context_cache: dict[str, dict[tuple[object, ...], object]] = {}
@@ -91,6 +132,7 @@ def complaints(
         "total": total,
         "offset": offset,
         "limit": limit,
+        "sort": sort,
         "dataAvailability": availability,
     }
 
