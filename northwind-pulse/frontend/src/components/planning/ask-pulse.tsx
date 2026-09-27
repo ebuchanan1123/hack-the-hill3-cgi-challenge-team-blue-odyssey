@@ -12,6 +12,8 @@ const suggestedQuestions = [
   "What does the AskNorthwind pilot data show?",
 ];
 
+const supportedTopics = ["Complaint trends", "Estimated reads", "Transfers", "Regions", "Investment scenarios"];
+
 function errorMessage(body: unknown, fallback: string) {
   if (body && typeof body === "object" && "detail" in body) {
     const detail = (body as { detail?: unknown }).detail;
@@ -109,7 +111,7 @@ export function AskPulse() {
                 </Button>
               </div>
             </form>
-            {!answer && <div className="suggestions" aria-label="Suggested questions">{suggestedQuestions.map((suggestion) => <button key={suggestion} type="button" disabled={loading} onClick={() => void ask(suggestion)}>{suggestion}</button>)}</div>}
+            {!answer && <><div className="ask-scope" aria-label="Ask Pulse supported topics"><span>Ask about</span>{supportedTopics.map((topic) => <b key={topic}>{topic}</b>)}</div><div className="suggestions" aria-label="Suggested questions">{suggestedQuestions.map((suggestion) => <button key={suggestion} type="button" disabled={loading} onClick={() => void ask(suggestion)}>{suggestion}</button>)}</div></>}
 
             {error && <p className="api-error" role="alert">{error}</p>}
             {answer && (

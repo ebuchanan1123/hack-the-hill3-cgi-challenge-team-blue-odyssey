@@ -399,6 +399,7 @@ dd { color: var(--ink); font-size: 13px; }
 .ask-pulse-widget .ask-form .ask-input textarea { min-height: 54px; height: 54px; resize: vertical; font-size: 13px; }
 .ask-pulse-widget .suggestions { gap: 7px; }
 .ask-pulse-widget .suggestions button, .ask-followups button { border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink-2); padding: 7px 10px; font-size: 10px; line-height: 1.35; }
+.ask-scope { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 12px; color: var(--ink-3); font-size: 9px; }.ask-scope b { padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-tint); color: var(--ink-2); font-weight: 500; }
 .api-error { margin-top: 12px; padding: 11px 13px; border: 1px solid #f0d2ca; border-radius: 7px; background: #fff6f3; color: #8f3e32; font-size: 12px; }
 .ask-answer { margin-top: 18px; padding: 17px; border: 1px solid var(--line); border-radius: var(--radius-inner); background: white; }
 .answer-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
