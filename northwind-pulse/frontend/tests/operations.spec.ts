@@ -177,6 +177,9 @@ test("Decision Twin sends a brief, renders Gemini options, and asks grounded que
   await page.goto("/decision-twin");
   await expect(page.getByRole("heading", { name: "Investment strategy generator" })).toBeVisible();
   await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await page.getByRole("button", { name: "$250K positive pilot" }).click();
+  await expect(page.getByRole("spinbutton", { name: "Available investment budget in USD" })).toHaveValue("250000");
+  await expect(page.getByRole("textbox", { name: "Strategy priorities and constraints" })).toHaveValue(/positive-return pilot/);
   const budget = page.getByRole("spinbutton", { name: "Available investment budget in USD" });
   const horizon = page.getByRole("spinbutton", { name: "Planning horizon in months" });
   const operatingCost = page.getByRole("spinbutton", { name: "Annual operating cost budget in USD" });
@@ -194,6 +197,11 @@ test("Decision Twin sends a brief, renders Gemini options, and asks grounded que
   await page.getByRole("textbox", { name: "Strategy priorities and constraints" }).fill("Prioritize estimated-read complaints and billing reliability.");
   await generateButton.click();
   await expect(page.getByRole("heading", { name: "Billing reliability first" }), errors.join("\n")).toBeVisible();
+  await expect(page.getByText("Gemini suggestion", { exact: true })).toBeVisible();
+  await expect(page.getByText("Backend calculation", { exact: true })).toBeVisible();
+  await page.getByLabel("Net benefit definition").click();
+  await expect(page.getByText("Savings over the selected horizon minus the initial investment and operating costs.", { exact: true })).toBeVisible();
+  await page.getByLabel("Net benefit definition").click();
   await expect(page.getByText("Estimated-read complaints are a measurable eligible cohort.")).toBeVisible();
   await expect(page.getByText("$36.3K", { exact: true })).toBeVisible();
   await page.getByLabel("Scenario confidence case").selectOption("UPSIDE");

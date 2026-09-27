@@ -51,6 +51,7 @@ export interface OperationsData {
   complaintTotal: number;
   complaintOffset: number;
   complaintLimit: number;
+  openOverdueCount: number;
 }
 
 export interface Metric {
@@ -151,6 +152,7 @@ export interface StrategyConfidenceResult {
   annualNetSavingsUsd: number;
   horizonMonths: number;
   horizonNetBenefitUsd: number;
+  totalProjectedCostUsd: number;
   roiPercent: number | null;
   paybackMonths: number | null;
   overlapAssumptionPercent: number;

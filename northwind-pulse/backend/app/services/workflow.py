@@ -1,9 +1,29 @@
-"""In-memory workflow state for the prototype resolution and prevention demo."""
+"""Persistent workflow state for the prototype resolution and prevention demo."""
 
+import json
+import os
+from pathlib import Path
 from typing import Any
 
-complaint_updates: dict[str, dict[str, Any]] = {}
-account_reviews: dict[str, dict[str, Any]] = {}
+STATE_PATH = Path(os.getenv("NORTHWIND_WORKFLOW_STATE", Path(__file__).resolve().parents[2] / ".northwind-workflow.json"))
+
+
+def _load_state() -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+    try:
+        value = json.loads(STATE_PATH.read_text())
+        return value.get("complaintUpdates", {}), value.get("accountReviews", {})
+    except (FileNotFoundError, json.JSONDecodeError, OSError, AttributeError):
+        return {}, {}
+
+
+complaint_updates, account_reviews = _load_state()
+
+
+def _save_state() -> None:
+    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary = STATE_PATH.with_suffix(".tmp")
+    temporary.write_text(json.dumps({"complaintUpdates": complaint_updates, "accountReviews": account_reviews}, indent=2, sort_keys=True))
+    temporary.replace(STATE_PATH)
 
 
 def merge_complaint_update(record: dict[str, Any]) -> dict[str, Any]:
@@ -13,11 +33,13 @@ def merge_complaint_update(record: dict[str, Any]) -> dict[str, Any]:
 
 def save_complaint_update(complaint_id: str, update: dict[str, Any]) -> dict[str, Any]:
     complaint_updates[complaint_id] = {"workflowStatus": update["status"], **update}
+    _save_state()
     return complaint_updates[complaint_id]
 
 
 def save_account_review(account_id: str, update: dict[str, Any]) -> dict[str, Any]:
     account_reviews[account_id] = {"reviewStatus": update["action"], **update}
+    _save_state()
     return account_reviews[account_id]
 
 

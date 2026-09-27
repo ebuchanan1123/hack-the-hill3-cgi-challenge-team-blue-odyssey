@@ -182,13 +182,14 @@ def _portfolio_result(
         "annualNetSavingsUsd": round(annual_net_savings, 2),
         "horizonMonths": horizon_months,
         "horizonNetBenefitUsd": round(horizon_net_benefit, 2),
+        "totalProjectedCostUsd": round(horizon_total_cost, 2),
         "roiPercent": round(roi_percent, 2) if roi_percent is not None else None,
         "paybackMonths": round(payback, 1) if payback is not None else None,
         "overlapAssumptionPercent": round(overlap_rate * 100, 2),
         "calculation": [
             f"Annual net savings = ${annual_gross_savings:.2f} gross savings - ${total_annual_operating_cost:.2f} annual operating cost = ${annual_net_savings:.2f}",
             f"Horizon net benefit = ${annual_net_savings:.2f} × {horizon_years:.2f} years - ${total_investment:.2f} one-time investment = ${horizon_net_benefit:.2f}",
-            f"ROI = horizon net benefit ÷ (investment + operating costs over horizon) × 100 = {roi_percent:.2f}%" if roi_percent is not None else "ROI is unavailable because the portfolio has no projected costs.",
+            f"ROI on total projected cost = ${horizon_net_benefit:.2f} horizon net benefit ÷ ${horizon_total_cost:.2f} total projected cost × 100 = {roi_percent:.2f}%" if roi_percent is not None else "ROI is unavailable because the portfolio has no projected costs.",
             f"Simple payback = investment ÷ annual net savings × 12 = {payback:.1f} months" if payback is not None else "Simple payback is unavailable because annual net savings are not positive.",
         ],
     }

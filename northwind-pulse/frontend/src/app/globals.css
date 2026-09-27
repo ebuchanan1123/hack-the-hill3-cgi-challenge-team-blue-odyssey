@@ -327,6 +327,10 @@ dd { color: var(--ink); font-size: 13px; }
 .strategy-section-heading h2 { margin-top: 5px; font-family: var(--font-title); font-size: 24px; font-weight: 500; }
 .strategy-section-heading p, .strategy-result-header p { max-width: 640px; margin-top: 7px; color: var(--ink-3); font-size: 12px; line-height: 1.6; }
 .strategy-form { margin-top: 19px; }
+.strategy-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 15px; }
+.strategy-presets > span { margin-right: 3px; color: var(--ink-3); font-size: 10px; }
+.strategy-presets button { min-height: 30px; padding: 0 11px; border: 1px solid #d3e0f0; border-radius: 999px; background: white; color: var(--ink-2); font-size: 10px; }
+.strategy-presets button:hover { border-color: #9fbddd; background: var(--accent-soft); color: var(--accent-strong); }
 .strategy-global-fields { display: grid; grid-template-columns: 1.25fr .72fr 1.1fr .8fr; gap: 12px; padding: 15px; border: 1px solid var(--line-soft); border-radius: var(--radius-inner); background: var(--surface-tint); }
 .strategy-field { display: grid; gap: 6px; min-width: 0; color: var(--ink-2); font-size: 11px; }
 .strategy-field > span:first-child { display: flex; justify-content: space-between; gap: 5px; }
@@ -344,10 +348,18 @@ dd { color: var(--ink); font-size: 13px; }
 .strategy-priorities textarea { width: 100%; min-height: 68px; resize: vertical; padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink); font: inherit; font-size: 11px; line-height: 1.55; }
 .strategy-results { margin-top: 22px; padding-top: 19px; border-top: 1px solid var(--line-soft); }
 .strategy-result-header h3 { margin-top: 5px; color: var(--ink); font-family: var(--font-title); font-size: 20px; font-weight: 500; }
+.strategy-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+.source-badge { display: inline-flex; align-items: center; padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; font-size: 8px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.source-gemini { color: var(--accent-strong); background: var(--accent-soft); border-color: #d6e3f4; }
+.source-calculated { color: var(--green); background: #eef7f1; border-color: #d7e9dd; }
+.source-assumption { color: #80621e; background: #fbf6e9; border-color: #eee1c5; }
 .confidence-select { display: grid; gap: 5px; color: var(--ink-3); font-size: 10px; white-space: nowrap; }
 .confidence-select select { height: 31px; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink-2); font-size: 11px; }
 .strategy-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 15px; }
 .strategy-kpis > div { min-width: 0; padding: 12px; border: 1px solid var(--line-soft); border-radius: var(--radius-inner); background: var(--surface-tint); }
+.strategy-kpis .info-control { vertical-align: -2px; margin-left: 2px; }
+.strategy-kpis .info-control > summary { display: inline-grid; padding: 1px; color: var(--ink-3); }
+.strategy-kpis .info-popover { top: 22px; width: 220px; font-weight: 400; text-transform: none; letter-spacing: 0; }
 .strategy-kpis span, .strategy-kpis small { display: block; color: var(--ink-3); font-size: 10px; line-height: 1.4; }
 .strategy-kpis strong { display: block; margin: 7px 0 5px; color: var(--ink); font-size: clamp(15px, 2vw, 21px); font-weight: 600; overflow-wrap: anywhere; }
 .ai-recommendation-list, .strategy-allocation-list { display: grid; gap: 8px; margin-top: 14px; padding: 0; list-style: none; }
@@ -400,14 +412,16 @@ dd { color: var(--ink); font-size: 13px; }
 @media (max-width: 700px) { .decision-workspace { gap: 17px; } .strategy-section { padding: 16px; } .strategy-global-fields { grid-template-columns: 1fr 1fr; gap: 10px; padding: 11px; } .strategy-form-footer { align-items: stretch; flex-direction: column; } .strategy-kpis { grid-template-columns: 1fr 1fr; } .ai-recommendation-card, .strategy-allocation-list li { grid-template-columns: 22px minmax(0, 1fr); } .recommendation-allocation, .allocation-money { grid-column: 2; justify-items: start; display: flex; align-items: center; gap: 7px; } .ask-pulse-widget { right: 16px; bottom: 16px; } }
 .result-actions button:hover { border-color: #c9d7e8; background: var(--surface-tint); color: var(--ink); }
 .comparison-table { margin-top: 18px; }
-.evidence-values > div { display: flex; justify-content: space-between; align-items: center; gap: 15px; padding: 13px 0; border-bottom: 1px solid var(--line-soft); }
-.evidence-values dt { font-size: 12.5px; color: var(--ink); font-weight: 500; }
+.evidence-values > div { display: grid; gap: 7px; padding: 15px 0; border-bottom: 1px solid var(--line-soft); }
+.evidence-values dt { min-width: 0; color: var(--ink); font-size: 12.5px; font-weight: 600; overflow-wrap: anywhere; }
 .source-line { display: flex; align-items: center; gap: 5px; margin-top: 5px; color: var(--ink-3); font-size: 11px; font-weight: 400; }
 .source-tag { padding: 1px 7px; border: 1px solid transparent; border-radius: 999px; font-size: 10.5px; font-weight: 500; }
 .source-northwind { color: var(--accent-strong); background: var(--accent-soft); border-color: #d6e3f4; }
 .source-calculated { color: #256d74; background: #eaf5f5; border-color: #d2e8e9; }
 .source-scenario { color: #83611b; background: #fbf5e6; border-color: #eee0bf; }
-.evidence-values dd { font-size: 18px; font-weight: 600; letter-spacing: -.02em; white-space: nowrap; }
+.evidence-values dd { min-width: 0; color: var(--ink-2); font-size: 13px; font-weight: 500; line-height: 1.55; overflow-wrap: anywhere; white-space: normal; }
+.evidence-values dd.calculation-text { max-width: none; color: var(--ink-2); text-align: left; }
+.evidence-values dt small { display: block; margin-top: 5px; color: var(--ink-3); font-size: 10px; font-weight: 400; line-height: 1.5; overflow-wrap: anywhere; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1420px) { .sidebar { width: 200px; } .main-content { margin-left: 200px; padding-inline: 28px; } .filter-category { width: 148px; } .filter-region { width: 124px; } .filter-priority { width: 112px; } .filter-status { width: 136px; } .filter-deadline { width: 128px; } .clear-text { display: none; } .clear-filters { width: 40px; justify-content: center; padding: 0; } }
