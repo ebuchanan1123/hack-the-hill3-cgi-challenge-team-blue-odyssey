@@ -17,7 +17,12 @@ export function PriorityLabel({ priority }: { priority: string }) { const level 
 export function InfoControl({ label = "About this data", title, children }: { label?: string; title?: string; children: ReactNode }) {
   return <details className="info-control"><summary aria-label={label} title={label}><Info size={16} /></summary><div className="info-popover">{title && <strong>{title}</strong>}<div className="info-body">{children}</div></div></details>;
 }
-const pageContext: Record<string, string> = { Operations: "Billing risk and complaint operations", Complaints: "Active cases and routing" };
+const pageContext: Record<string, string> = {
+  Operations: "Billing risk and complaint operations",
+  Complaints: "Active cases and routing",
+  "Flagged bills": "Review risky bills before they become complaints",
+  "Decision Twin": "Choose where Northwind should invest next",
+};
 export function PageHeader({ title, hero = false, actions, children }: { title: string; hero?: boolean; actions?: ReactNode; children?: ReactNode }) {
   return <header className={hero ? "page-header page-hero" : "page-header"}>
     {hero && <HeroMotif />}
