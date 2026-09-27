@@ -96,7 +96,7 @@ test("Complaint and flagged-bill workflows save judge-facing feedback", async ({
   await expect(reopenedAccount.getByLabel("Pre-bill review notes")).toHaveValue("Actual reading corrected the estimate.");
 });
 
-test("Decision Twin sends a brief, renders Gemini options, and asks grounded questions", async ({ page }) => {
+test("Investment Planner sends a brief and renders Gemini options", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
@@ -162,7 +162,8 @@ test("Decision Twin sends a brief, renders Gemini options, and asks grounded que
   });
 
   await page.goto("/decision-twin");
-  await expect(page.getByRole("heading", { name: "Investment strategy generator" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Investment Planner", level: 1 })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Investment planning brief" })).toBeVisible();
   await expect(page.getByRole("checkbox")).toHaveCount(0);
   await page.getByRole("button", { name: "$250K positive pilot" }).click();
   await expect(page.getByRole("spinbutton", { name: "Available investment budget in USD" })).toHaveValue("250000");
@@ -171,7 +172,7 @@ test("Decision Twin sends a brief, renders Gemini options, and asks grounded que
   const horizon = page.getByRole("spinbutton", { name: "Planning horizon in months" });
   const operatingCost = page.getByRole("spinbutton", { name: "Annual operating cost budget in USD" });
   const overlap = page.getByRole("spinbutton", { name: "Portfolio benefit overlap percent" });
-  const generateButton = page.getByRole("button", { name: "Generate investment strategy" });
+  const generateButton = page.getByRole("button", { name: "Build investment plan" });
   for (const field of [budget, horizon, operatingCost, overlap]) {
     await field.fill("");
     await expect(field).toHaveAttribute("aria-invalid", "true");

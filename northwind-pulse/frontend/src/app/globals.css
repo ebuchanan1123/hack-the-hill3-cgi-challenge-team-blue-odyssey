@@ -261,7 +261,7 @@ dd { color: var(--ink); font-size: 13px; }
 .chart-data summary { color: var(--accent); font-weight: 500; }
 .chart-data table { margin-top: 10px; }
 
-/* ---------- Decision Twin ---------- */
+/* ---------- Investment Planner ---------- */
 .decision-content { max-width: none; }
 .ask-heading { position: relative; display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
 .ask-heading .info-control { position: static; }
@@ -323,14 +323,15 @@ dd { color: var(--ink); font-size: 13px; }
 .decision-workspace { display: grid; gap: 24px; max-width: 1040px; margin-inline: auto; }
 .strategy-section { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: var(--shadow-md); }
 .strategy-section-heading, .strategy-result-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
-.strategy-section-heading h2 { margin-top: 5px; font-family: var(--font-title); font-size: 24px; font-weight: 500; }
-.strategy-section-heading p, .strategy-result-header p { max-width: 640px; margin-top: 7px; color: var(--ink-3); font-size: 12px; line-height: 1.6; }
-.strategy-form { margin-top: 19px; }
+.strategy-section-heading p, .strategy-result-header p { max-width: 640px; margin: 0; color: var(--ink-3); font-size: 12px; line-height: 1.6; }
+.strategy-form { margin-top: 15px; }
 .strategy-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 15px; }
 .strategy-presets > span { margin-right: 3px; color: var(--ink-3); font-size: 10px; }
 .strategy-presets button { min-height: 30px; padding: 0 11px; border: 1px solid #d3e0f0; border-radius: 999px; background: white; color: var(--ink-2); font-size: 10px; }
 .strategy-presets button:hover { border-color: #9fbddd; background: var(--accent-soft); color: var(--accent-strong); }
-.strategy-global-fields { display: grid; grid-template-columns: 1.25fr .72fr 1.1fr .8fr; gap: 12px; padding: 15px; border: 1px solid var(--line-soft); border-radius: var(--radius-inner); background: var(--surface-tint); }
+.strategy-global-fields { display: grid; grid-template-columns: 1.2fr .72fr 1.05fr 1.25fr; gap: 12px; padding: 15px; border: 1px solid var(--line-soft); border-radius: var(--radius-inner); background: var(--surface-tint); }
+.strategy-field.overlap-field { grid-column: 1 / -1; grid-template-columns: minmax(180px, .9fr) minmax(150px, .55fr) minmax(240px, 2fr); align-items: center; gap: 8px 12px; }
+.overlap-field .field-error { grid-column: 1 / -1; }
 .strategy-field { display: grid; gap: 6px; min-width: 0; color: var(--ink-2); font-size: 11px; }
 .strategy-field > span:first-child { display: flex; justify-content: space-between; gap: 5px; }
 .strategy-field > span b { color: var(--ink-3); font-size: 9px; font-weight: 500; white-space: nowrap; }
@@ -390,8 +391,8 @@ dd { color: var(--ink); font-size: 13px; }
 .ask-evidence { margin-top: 17px; }.ask-evidence h3 { color: var(--ink-2); font-size: 11px; }.ask-evidence ul { margin: 8px 0 0; padding: 0; list-style: none; }.ask-evidence li { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line-soft); }.ask-evidence li span { display: grid; gap: 4px; }.ask-evidence li strong { font-size: 11px; }.ask-evidence li small { color: var(--ink-3); font-size: 10px; }.ask-evidence li b { color: var(--accent-strong); font-size: 12px; white-space: nowrap; }
 .ask-caveats { margin-top: 12px; padding: 8px 11px; border-left: 2px solid #d9c28d; background: #fbf8ef; }.ask-caveats ul { margin: 5px 0 0; padding-left: 16px; }.ask-caveats li { color: #70654b; font-size: 10px; line-height: 1.55; }
 .spin { animation: pulse-spin 1s linear infinite; } @keyframes pulse-spin { to { transform: rotate(360deg); } }
-@media (max-width: 900px) { .strategy-global-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .decision-workspace { gap: 17px; } .strategy-section { padding: 16px; } .strategy-global-fields { grid-template-columns: 1fr 1fr; gap: 10px; padding: 11px; } .strategy-form-footer { align-items: stretch; flex-direction: column; } .strategy-kpis { grid-template-columns: 1fr 1fr; } .ai-recommendation-card, .strategy-allocation-list li { grid-template-columns: 22px minmax(0, 1fr); } .recommendation-allocation, .allocation-money { grid-column: 2; justify-items: start; display: flex; align-items: center; gap: 7px; } }
+@media (max-width: 1000px) { .strategy-global-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .decision-workspace { gap: 17px; } .strategy-section { padding: 16px; } .strategy-global-fields { grid-template-columns: 1fr 1fr; gap: 10px; padding: 11px; } .strategy-field.overlap-field { grid-column: 1 / -1; grid-template-columns: 1fr; gap: 6px; } .strategy-form-footer { align-items: stretch; flex-direction: column; } .strategy-kpis { grid-template-columns: 1fr 1fr; } .ai-recommendation-card, .strategy-allocation-list li { grid-template-columns: 22px minmax(0, 1fr); } .recommendation-allocation, .allocation-money { grid-column: 2; justify-items: start; display: flex; align-items: center; gap: 7px; } }
 .result-actions button:hover { border-color: #c9d7e8; background: var(--surface-tint); color: var(--ink); }
 .comparison-table { margin-top: 18px; }
 .evidence-values > div { display: grid; gap: 7px; padding: 15px 0; border-bottom: 1px solid var(--line-soft); }

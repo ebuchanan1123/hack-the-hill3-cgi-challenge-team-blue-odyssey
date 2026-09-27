@@ -28,7 +28,7 @@ const pageContext: Record<string, string> = {
   Operations: "Billing risk and complaint operations",
   Complaints: "Active cases and routing",
   "Flagged bills": "Review risky bills before they become complaints",
-  "Decision Twin": "Choose where Northwind should invest next",
+  "Investment Planner": "Choose where Northwind should invest next",
 };
 export function PageHeader({ title, hero = false, actions, children }: { title: string; hero?: boolean; actions?: ReactNode; children?: ReactNode }) {
   return <header className={hero ? "page-header page-hero" : "page-header"}>

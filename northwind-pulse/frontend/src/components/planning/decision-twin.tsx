@@ -4,7 +4,7 @@ import { InvestmentStrategy } from "@/components/planning/investment-strategy";
 export function DecisionTwin() {
   return (
     <>
-      <PageHeader title="Decision Twin" />
+      <PageHeader title="Investment Planner" />
       <div className="decision-content decision-workspace">
         <InvestmentStrategy />
       </div>
