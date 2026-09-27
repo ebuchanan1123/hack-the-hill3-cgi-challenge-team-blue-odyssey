@@ -26,4 +26,5 @@ class AccountReviewUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     action: AccountReviewAction
+    correctedUsageKwh: float | None = Field(default=None, ge=0)
     notes: str | None = Field(default=None, max_length=1000)

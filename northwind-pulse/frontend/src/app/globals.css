@@ -231,6 +231,9 @@ dd { color: var(--ink); font-size: 13px; }
 .workflow-panel { display: grid; gap: 9px; margin-top: 20px; padding: 15px; border: 1px solid #dbe6f4; border-radius: var(--radius-card); background: var(--surface-tint); }
 .workflow-panel h3 { color: var(--ink); font-size: 13px; }
 .workflow-panel p { color: var(--ink-3); font-size: 11px; line-height: 1.5; }
+.workflow-field { display: grid; gap: 6px; color: var(--ink-2); font-size: 11px; }
+.workflow-field span { display: flex; justify-content: space-between; gap: 8px; }
+.workflow-field b { color: var(--ink-3); font-size: 9px; font-weight: 500; }
 .workflow-panel select, .workflow-panel input, .workflow-panel textarea { width: 100%; min-height: 36px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink); font: inherit; font-size: 12px; }
 .workflow-panel textarea { resize: vertical; }
 .workflow-panel button { justify-self: start; }

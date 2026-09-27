@@ -72,13 +72,14 @@ class AnalysisTests(unittest.TestCase):
             progress = TestClient(app).patch("/api/complaints/C1/workflow", json={"status": "In progress", "notes": "Assigned to billing resolution"})
             missing_resolution = TestClient(app).patch("/api/complaints/C1/workflow", json={"status": "Resolved"})
             resolved = TestClient(app).patch("/api/complaints/C1/workflow", json={"status": "Resolved", "resolutionType": "Bill corrected", "rootCause": "Estimated read", "notes": "Bill corrected and re-issued"})
-            review = TestClient(app).patch("/api/accounts/ACC-1/review", json={"action": "Held for validation", "notes": "Validate before billing"})
+            review = TestClient(app).patch("/api/accounts/ACC-1/review", json={"action": "Meter reading requested", "correctedUsageKwh": 870, "notes": "Reading was incorrect"})
 
         self.assertEqual(progress.status_code, 200)
         self.assertEqual(missing_resolution.status_code, 422)
         self.assertEqual(resolved.status_code, 200)
         self.assertIn("feedback", resolved.json()["message"])
         self.assertEqual(review.status_code, 200)
+        self.assertEqual(review.json()["correctedUsageKwh"], 870)
 
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(
