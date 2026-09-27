@@ -95,7 +95,7 @@ export function InvestmentStrategy() {
           <p>Set your financial guardrails and priorities. Gemini proposes evidence-supported options; the backend calculates and compares the financial outcomes.</p>
         </div>
         <InfoControl label="Investment strategy assumptions" title="How recommendations work">
-          Gemini selects and explains available intervention types and proposes priority shares. It does not calculate ROI or payback. The backend uses Northwind complaint volumes and event costs to estimate implementation investments and calculate each portfolio. Effect ranges, operating costs, and implementation costs are planning assumptions, not measured effects or approved project quotes.
+          Gemini selects and explains available intervention types and proposes priority shares. It does not calculate ROI or payback. The backend sizes rollout coverage from Northwind complaint, account, and unit-cost evidence, then calculates each portfolio. Effect ranges, operating costs, and rollout capacities are planning assumptions, not measured effects or approved project quotes.
         </InfoControl>
       </header>
 
@@ -137,7 +137,7 @@ export function InvestmentStrategy() {
           <small>{priorities.length}/1000 · Do not include customer names, account numbers, or personal data.</small>
         </label>
         <div className="strategy-form-footer">
-          <p>Gemini proposes options and priority shares. Financial calculations stay deterministic; implementation costs use source-derived proxies and impact cases use explicit 10% / 20% / 30% planning assumptions.</p>
+          <p>Gemini proposes options and priority shares. Financial calculations stay deterministic; larger budgets fund more rollout coverage, with explicit 10% / 20% / 30% impact assumptions scaled to funded capacity.</p>
           <Button type="submit" disabled={loading || hasFieldErrors}>
             {loading ? <LoaderCircle size={16} className="spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
             {loading ? "Generating strategy…" : "Generate investment strategy"}

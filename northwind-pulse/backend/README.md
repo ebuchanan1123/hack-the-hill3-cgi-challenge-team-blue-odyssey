@@ -73,10 +73,12 @@ The brief-only strategy-generation request for `POST /api/strategy/generate` is:
 
 Gemini may recommend only the four data-supported backend options, explain its
 choices, and propose priority-share percentages. The backend rescales shares above
-100% (and reports that normalization), derives a conservative implementation-cost
-proxy from each option's annual avoidable handling-cost baseline, then enumerates
-affordable subsets and selects the best portfolio for each confidence case. The
-user budget is a ceiling, not a forced spend amount. Effect cases use explicit
+100% (and reports that normalization), derives a source-supported rollout capacity
+for each option, and scales impact by the funded share of that capacity before
+enumerating affordable portfolios. Larger budgets can therefore fund broader
+coverage and produce more modeled savings, while negative incremental returns are
+still rejected. The user budget remains a ceiling rather than a forced spend
+amount. Effect cases use explicit
 10%/20%/30% server-side assumptions, not model-generated forecasts. Objectives
 are `maximizeNetSavings`, `maximizeRoi`, and `minimizePayback`. Northwind event
 baselines and per-event savings come from CSVs; annual operating-cost budget and

@@ -12,13 +12,18 @@ from app.models.scenarios import ReductionAssumptions, StrategySimulationRequest
 from app.models.strategy_generation import GeminiStrategyDraft, StrategyGenerationRequest
 from app.services.analysis import _find_column
 from app.services.ask_pulse import GeminiNotConfiguredError, GeminiServiceError, get_gemini_client
+from app.services.scenarios import _unit_cost
 from app.services.strategy import INTERVENTION_LABELS, _annual_baselines, build_investment_strategy
 
 DEFAULT_IMPACT_ASSUMPTIONS = ReductionAssumptions(conservative=10, base=20, upside=30)
 # The source files contain avoided handling costs, but no implementation quotes.
 # Use a conservative first-year value proxy rather than treating the whole user
 # budget as the cost of every recommended program.
-IMPLEMENTATION_COST_PROXY_RATE = 0.10
+IMPLEMENTATION_CAPACITY_RATES = {
+    "targeted-validation": 0.50,
+    "meterhub-improvement": 1.00,
+    "transfer-integration-improvement": 1.00,
+}
 INTERVENTION_DESCRIPTIONS = {
     "targeted-validation": "Validate estimated-read bills before issuing them; intended to reduce estimated-read complaints and correction work.",
     "meterhub-improvement": "Improve the MeterHub estimation process and use corrected-bill feedback; intended to reduce estimated-read and no-read complaints.",
@@ -39,6 +44,13 @@ def _proposal_evidence(frames: dict[str, pd.DataFrame]) -> list[dict[str, Any]]:
         eligible_events = baseline.get("annualEligibleEvents")
         if unit_savings is None or not eligible_events or unit_savings <= 0:
             continue
+        capacity = baseline["annualEligibleEvents"] * float(unit_savings) * IMPLEMENTATION_CAPACITY_RATES.get(intervention_id, 0.5)
+        if intervention_id == "targeted-smart-meter-deployment":
+            meter_reads = frames.get("meterReads")
+            accounts_col = _find_column(meter_reads, ("accounts", "account_count", "customers")) if meter_reads is not None else None
+            install_cost = _unit_cost(frames, "Smart meter installation")
+            if meter_reads is not None and accounts_col is not None and install_cost is not None:
+                capacity = float(pd.to_numeric(meter_reads[accounts_col], errors="coerce").sum()) * install_cost
         evidence.append(
             {
                 "id": intervention_id,
@@ -48,6 +60,7 @@ def _proposal_evidence(frames: dict[str, pd.DataFrame]) -> list[dict[str, Any]]:
                 "eventType": baseline["impactKind"],
                 "eventLabel": baseline["eventLabel"],
                 "savingsPerEventUsd": round(float(unit_savings), 2),
+                "implementationCapacityUsd": round(float(capacity), 2),
                 "source": baseline["source"],
             }
         )
@@ -130,9 +143,7 @@ def generate_investment_strategy(
     planned_investments = {
         item.id: min(
             request.budgetUsd * normalized_shares[item.id] / 100,
-            candidate_info[item.id]["eligibleEventsPerYear"]
-            * candidate_info[item.id]["savingsPerEventUsd"]
-            * IMPLEMENTATION_COST_PROXY_RATE,
+            candidate_info[item.id]["implementationCapacityUsd"],
         )
         for item in recommendations
     }
@@ -145,8 +156,13 @@ def generate_investment_strategy(
             StrategyInterventionInput(
                 id=item.id,
                 investmentUsd=planned_investments[item.id],
-                annualOperatingCostUsd=request.annualOperatingCostUsd * normalized_shares[item.id] / 100,
-                reductionPercent=DEFAULT_IMPACT_ASSUMPTIONS,
+                annualOperatingCostUsd=request.annualOperatingCostUsd * planned_investments[item.id] / max(sum(planned_investments.values()), 1),
+                reductionPercent=ReductionAssumptions(
+                    **{
+                        level: round(getattr(DEFAULT_IMPACT_ASSUMPTIONS, level) * min(planned_investments[item.id] / max(candidate_info[item.id]["implementationCapacityUsd"], 1), 1), 2)
+                        for level in ("conservative", "base", "upside")
+                    }
+                ),
             )
             for item in recommendations
         ],
@@ -180,8 +196,8 @@ def generate_investment_strategy(
         "Intervention selection, allocation shares, and rationales are Gemini-generated recommendations, not source facts.",
         "Gemini does not calculate dollar values, savings, ROI, or payback; the backend computes these from the selected allocations, explicit effect assumptions, Northwind event counts, and unit costs.",
         "Effect ranges are deterministic planning assumptions (conservative 10%, base 20%, upside 30%); they are not measured causal effects.",
-        "Implementation investments use a conservative proxy equal to 10% of each option's annual avoidable handling-cost baseline because the source data contains no project quotes; the user budget remains a maximum ceiling.",
-        "Suggested dollar allocations are source-derived implementation-cost proxies capped by Gemini's priority shares; actual project quotes were not available in the Northwind datasets.",
+        "Each option has a source-derived rollout capacity: validation, MeterHub, and transfer work scale against eligible annual handling-cost baselines; smart-meter deployment scales against eligible accounts × smart-meter installation cost.",
+        "Impact scales with the funded share of each rollout capacity, so a larger budget can fund more coverage and produce more modeled savings. These are planning assumptions, not approved project quotes.",
         *normalization_note,
     ]
     return {
