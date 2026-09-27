@@ -70,6 +70,7 @@ def complaints(
     page = frame.iloc[offset : offset + limit] if frame is not None else None
     records = complaint_records(page)
     enriched: list[dict] = []
+    route_context_cache: dict[str, dict[tuple[object, ...], object]] = {}
     for record in records:
         routed = route_complaint(
             {
@@ -82,6 +83,7 @@ def complaints(
                 "slaDays": record.get("slaDays"),
             },
             frames,
+            route_context_cache,
         )
         enriched.append({**record, **routed})
     return {
