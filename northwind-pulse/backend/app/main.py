@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.models.ask_pulse import AskPulseRequest, AskPulseResponse
 from app.models.scenarios import StrategySimulationRequest
+from app.models.strategy_generation import StrategyGenerationRequest
 from app.services.analysis import analyze_data, complaint_records
 from app.services.ask_pulse import (
     GeminiNotConfiguredError,
@@ -18,6 +19,7 @@ from app.services.prevention import analyze_prevention
 from app.services.routing import route_complaint
 from app.services.scenarios import simulate_scenarios
 from app.services.strategy import build_investment_strategy
+from app.services.strategy_generator import StrategyDataUnavailableError, generate_investment_strategy
 
 app = FastAPI(title="Northwind Pulse API", version="0.1.0")
 data_loader = CSVDataLoader()
@@ -108,6 +110,19 @@ def simulate(request: StrategySimulationRequest | None = None) -> dict:
     if request is not None:
         return build_investment_strategy(frames, availability, request)
     return simulate_scenarios(frames, availability)
+
+
+@app.post("/api/strategy/generate", tags=["Investment scenarios"])
+def generate_strategy(request: StrategyGenerationRequest) -> dict:
+    frames, availability = data_loader.load()
+    try:
+        return generate_investment_strategy(frames, availability, request)
+    except StrategyDataUnavailableError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except GeminiNotConfiguredError as exc:
+        raise HTTPException(status_code=503, detail="Gemini is not configured on this backend") from exc
+    except GeminiServiceError as exc:
+        raise HTTPException(status_code=502, detail="Gemini could not propose a valid strategy; please retry") from exc
 
 
 @app.post("/api/ask-pulse", response_model=AskPulseResponse, tags=["Ask Pulse"])

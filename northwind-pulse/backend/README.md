@@ -35,9 +35,11 @@ Implemented endpoints:
   It does not use customer history or machine learning.
 - `POST /api/simulate` — 12 intervention/confidence comparisons (four interventions
   × conservative/base/upside) based on observed annualized complaint counts and
-  Northwind unit costs when called without a body. With a strategy request body,
-  deterministically selects an affordable portfolio from user-entered investment,
-  operating cost, and conservative/base/upside impact assumptions.
+  Northwind unit costs when called without a body. An optional detailed strategy
+  request remains available for deterministic subset optimization.
+- `POST /api/strategy/generate` — accepts a short planning brief; Gemini recommends
+  data-supported options and budget shares, then the backend calculates all USD
+  allocations, savings, ROI, and payback from CSV-derived baselines.
 - `POST /api/ask-pulse` — Gemini-generated explanation over selected backend-
   calculated facts, with cited fact IDs resolved by the backend to source values.
 
@@ -56,49 +58,48 @@ defaults to zero as a visible simplifying assumption. The transfer/integration
 scenario estimates handling-cost difference and does not claim complaints are
 avoided.
 
-The configurable investment strategy request for `POST /api/simulate` is strict:
+The brief-only strategy-generation request for `POST /api/strategy/generate` is:
 
 ```json
 {
   "budgetUsd": 1000000,
   "horizonMonths": 36,
   "objective": "maximizeNetSavings",
+  "annualOperatingCostUsd": 25000,
   "portfolioOverlapPercent": 25,
-  "interventions": [
-    {
-      "id": "targeted-validation",
-      "investmentUsd": 500000,
-      "annualOperatingCostUsd": 25000,
-      "reductionPercent": {
-        "conservative": 10,
-        "base": 20,
-        "upside": 30
-      }
-    }
-  ]
+  "priorities": "Prioritize estimated-read issues and a rollout that can scale."
 }
 ```
 
-The API enumerates all affordable all-or-nothing combinations of the submitted
-interventions (maximum four) and returns the selected portfolio for each confidence
-case. Objectives are `maximizeNetSavings`, `maximizeRoi`, and `minimizePayback`.
-`investmentUsd`, ongoing annual costs, and effect percentages are user assumptions;
-eligible event baselines and Northwind per-event savings are calculated from CSVs.
-Overlapping initiatives receive a visible diminishing-benefit adjustment using
-`portfolioOverlapPercent`. Results include spending allocations, gross/net annual
-savings, horizon net benefit, ROI, simple payback, calculation inputs, assumptions,
-source provenance, and data limitations. Strategies are approximate planning
-estimates, not guarantees or measured causal effects. If no affordable portfolio
-has positive projected horizon benefit, the result recommends no investment.
+Gemini may recommend only the four data-supported backend options, explain its
+choices, and propose priority-share percentages. The backend rescales shares above
+100% (and reports that normalization), derives a conservative implementation-cost
+proxy from each option's annual avoidable handling-cost baseline, then enumerates
+affordable subsets and selects the best portfolio for each confidence case. The
+user budget is a ceiling, not a forced spend amount. Effect cases use explicit
+10%/20%/30% server-side assumptions, not model-generated forecasts. Objectives
+are `maximizeNetSavings`, `maximizeRoi`, and `minimizePayback`. Northwind event
+baselines and per-event savings come from CSVs; annual operating-cost budget and
+priority notes are user inputs. The returned result includes the Gemini proposal,
+backend-selected portfolio, gross/net annual savings, horizon net benefit, ROI,
+simple payback, assumptions, source provenance, and data limitations. Strategies
+are approximate planning estimates, not guarantees or measured causal effects. If
+no affordable portfolio has positive projected horizon benefit, it recommends no
+investment.
+
+The optional detailed `POST /api/simulate` request can still be used when callers
+want to explicitly supply each intervention's investment and impact ranges. The
+brief-only `/api/strategy/generate` endpoint uses Gemini to propose packages; it
+does not need intervention-level inputs from the caller.
 Cash flows are held constant over the selected horizon; the calculator does not
 discount future cash flows or model inflation, tax, financing, or implementation
 ramp-up.
 
-Routing, prevention, and financial calculations remain deterministic. Gemini is
-used only to explain the supplied evidence; it cannot determine routing or calculate
-ROI. Configure `GEMINI_API_KEY` in the git-ignored backend `.env` file, and
-optionally set `GEMINI_MODEL` (default `gemini-2.5-flash`). The backend loads that
-file at startup. Ask Pulse sends only selected aggregate evidence and uses
+Routing, prevention, and financial calculations remain deterministic. Gemini can
+propose strategy options, budget shares, and explanations, but cannot calculate
+ROI or savings dollars. Configure `GEMINI_API_KEY` in the git-ignored backend `.env` file, and
+optionally set `GEMINI_MODEL` (default `gemini-3.1-flash-lite`). The backend loads
+that file at startup. Ask Pulse sends only selected aggregate evidence and uses
 `store=false` for Gemini Interactions; no complaint-level rows are sent. The API
 returns `503` if the key is missing and `502` if Gemini fails or returns an invalid
 structured result. Model-produced evidence IDs are allow-listed against backend
@@ -107,8 +108,8 @@ evidence before their values can appear in the response.
 The proposed Ask Pulse contract is `POST /api/ask-pulse` with
 `{"question":"..."}` and a response containing `question`, `answer`, `evidence`
 (each with `id`, `label`, `value`, `source`, optional `period`, and `evidenceType`),
-`caveats`, `suggestedFollowUps`, and `grounding`. This backend addition does not
-change frontend code; coordinate that contract before frontend integration.
+`caveats`, `suggestedFollowUps`, and `grounding`. The frontend Decision Twin
+proxies this endpoint server-side; it does not expose the Gemini key to browsers.
 
 Run the backend tests from this directory with `python -m unittest discover -s tests`.
 

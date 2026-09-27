@@ -27,7 +27,7 @@ export function Dashboard({ accounts, complaints, usageHistory, statuses, metric
     ["Complaint", "Category", "Region", "Priority", "Days open", "Deadline"], ...complaints.map(c => [c.id, c.category, c.region, levelLabel(priorityLevel(c.priority)), c.daysOpen, getDeadline(c)?.label ?? ""]),
   ];
   return <>
-    <PageHeader title="Dashboard" hero actions={<PageActions period="Last 30 days" exportName="northwind-dashboard" getRows={exportRows} />}>
+    <PageHeader title="Operations" hero actions={<PageActions period="Last 30 days" exportName="northwind-dashboard" getRows={exportRows} />}>
       <div className="focus-strip"><span className="focus-label"><Target size={14} aria-hidden="true" />Focus this period</span><span>{periodFocus(complaints)}</span><Link href="/complaints">Review complaints<ArrowRight size={13} aria-hidden="true" /></Link></div>
     </PageHeader>
     <div className="metrics-grid">{metrics.map(metric => <MetricCard key={metric.label} {...metric} />)}</div>

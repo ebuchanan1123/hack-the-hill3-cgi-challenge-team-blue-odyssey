@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Activity, LayoutDashboard, ListTodo, Layers3, Menu } from "lucide-react";
-const navigation = [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }, { href: "/complaints", label: "Complaints", icon: ListTodo }, { href: "/decision-twin", label: "Decision Twin", icon: Layers3 }];
+const navigation = [{ href: "/dashboard", label: "Operations", icon: LayoutDashboard }, { href: "/complaints", label: "Complaints", icon: ListTodo }, { href: "/decision-twin", label: "Decision Twin", icon: Layers3 }];
 export function AppSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
