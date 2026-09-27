@@ -320,7 +320,7 @@ dd { color: var(--ink); font-size: 13px; }
 .result-actions button svg { color: var(--accent); }
 
 /* Live Gemini strategy brief. */
-.decision-workspace { display: grid; gap: 24px; max-width: 1040px; margin-inline: auto; }
+.decision-workspace { display: grid; gap: 24px; width: 100%; max-width: none; margin-inline: 0; }
 .strategy-section { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: var(--shadow-md); }
 .strategy-section-heading, .strategy-result-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
 .strategy-section-heading p, .strategy-result-header p { max-width: 640px; margin: 0; color: var(--ink-3); font-size: 12px; line-height: 1.6; }
