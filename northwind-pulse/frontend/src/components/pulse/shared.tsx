@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode, type SyntheticEvent } from "react";
 import { Info, X, Inbox, ShieldAlert, ArrowLeftRight, Clock3, CircleAlert, CircleCheck, TrendingDown, TrendingUp } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,15 @@ export function RiskBadge({ risk }: { risk: string }) { return <span className={
 const deadlineIcons = { Overdue: CircleAlert, "Due soon": Clock3, "On track": CircleCheck };
 export function DeadlineBadge({ deadline, text = deadline.label }: { deadline: Deadline; text?: string }) { const Icon = deadlineIcons[deadline.state]; return <span className={`deadline-badge deadline-${deadline.state.toLowerCase().replace(" ", "-")}`}><Icon size={12} aria-hidden="true" />{text}</span>; }
 export function PriorityLabel({ priority }: { priority: string }) { const level = priorityLevel(priority); const bars = 3 - levelOrder.indexOf(level); return <span className={`priority priority-${level.toLowerCase()}`}><span className="priority-bars" aria-hidden="true">{[1, 2, 3].map(bar => <i key={bar} className={levelOrder.includes(level) && bar <= bars ? "on" : undefined} />)}</span>{levelLabel(level)}</span>; }
+function closeOtherInfoControls(event: SyntheticEvent<HTMLDetailsElement>) {
+  const current = event.currentTarget;
+  if (!current.open) return;
+  document.querySelectorAll<HTMLDetailsElement>("details.info-control[open]").forEach((control) => {
+    if (control !== current) control.open = false;
+  });
+}
 export function InfoControl({ label = "About this data", title, children }: { label?: string; title?: string; children: ReactNode }) {
-  return <details className="info-control"><summary aria-label={label} title={label}><Info size={16} /></summary><div className="info-popover">{title && <strong>{title}</strong>}<div className="info-body">{children}</div></div></details>;
+  return <details className="info-control" onToggle={closeOtherInfoControls}><summary aria-label={label} title={label}><Info size={16} /></summary><div className="info-popover">{title && <strong>{title}</strong>}<div className="info-body">{children}</div></div></details>;
 }
 const pageContext: Record<string, string> = {
   Operations: "Billing risk and complaint operations",
