@@ -107,6 +107,8 @@ def complaints(
             targets = {"P1": 5, "P2": 10, "P3": 20}
             remaining = filtered["priority"].astype(str).map(targets) - pd.to_numeric(filtered["days_to_close"], errors="coerce")
             filtered = filtered.assign(_sort=remaining).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
+        elif sort == "recent" and "date_opened" in filtered.columns:
+            filtered = filtered.sort_values("date_opened", ascending=False)
     total = len(filtered) if filtered is not None else 0
     page = filtered.iloc[offset : offset + limit] if filtered is not None else None
     records = complaint_records(page)

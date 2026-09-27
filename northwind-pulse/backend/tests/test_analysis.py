@@ -46,16 +46,21 @@ class AnalysisTests(unittest.TestCase):
                 "source_system": ["SYS-01"] * 12,
                 "sla_days": [20] * 12,
                 "status": ["Open"] * 12,
+                "date_opened": [f"2025-01-{index + 1:02d}" for index in range(12)],
             }
         )
         with patch("app.main.data_loader.load", return_value=({"complaints": complaints}, {"status": "available"})):
             response = TestClient(app).get("/api/complaints?category=Billing&priority=P1&limit=10&sort=priority")
+            recent_response = TestClient(app).get("/api/complaints?limit=2&sort=recent")
 
         body = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(body["total"], 3)
         self.assertEqual(len(body["items"]), 3)
         self.assertTrue(all(item["priority"] == "P1" for item in body["items"]))
+
+        recent_items = recent_response.json()["items"]
+        self.assertEqual([item["id"] for item in recent_items], ["C11", "C10"])
 
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(
