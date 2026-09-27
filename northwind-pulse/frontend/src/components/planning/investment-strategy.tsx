@@ -106,11 +106,10 @@ export function InvestmentStrategy() {
   }
 
   return (
-    <section className="strategy-section" aria-labelledby="strategy-title">
+    <section className="strategy-section" aria-label="Investment planning brief">
       <header className="strategy-section-heading">
         <div>
-          <h2 id="strategy-title">Investment strategy generator</h2>
-          <p>Set your financial guardrails and priorities. Gemini proposes evidence-supported options; the backend calculates and compares the financial outcomes.</p>
+          <p>Set your budget, timeline, and priorities. Gemini recommends evidence-backed actions; Northwind calculates the financial outcomes.</p>
         </div>
         <InfoControl label="Investment strategy assumptions" title="How recommendations work">
           Gemini selects and explains available intervention types and proposes priority shares. It does not calculate ROI or payback. The backend sizes rollout coverage from Northwind complaint, account, and unit-cost evidence, then calculates each portfolio. Effect ranges, operating costs, and rollout capacities are planning assumptions, not measured effects or approved project quotes.
@@ -160,10 +159,10 @@ export function InvestmentStrategy() {
           <small>{priorities.length}/1000 · Do not include customer names, account numbers, or personal data.</small>
         </label>
         <div className="strategy-form-footer">
-          <p>Gemini proposes options and priority shares. Financial calculations stay deterministic; larger budgets fund more rollout coverage, with explicit 10% / 20% / 30% impact assumptions scaled to funded capacity.</p>
+          <p>Impact scenarios use 10% / 20% / 30% planning assumptions, scaled to funded rollout capacity.</p>
           <Button type="submit" disabled={loading || hasFieldErrors}>
             {loading ? <LoaderCircle size={16} className="spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
-            {loading ? "Generating strategy…" : "Generate investment strategy"}
+            {loading ? "Building plan…" : "Build investment plan"}
             {!loading && <ArrowRight size={15} aria-hidden="true" />}
           </Button>
         </div>

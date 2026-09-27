@@ -350,10 +350,10 @@ def get_gemini_client() -> Any:
 def _fallback_response(question: str, *, suggested: list[str] | None = None) -> AskPulseResponse:
     return AskPulseResponse(
         question=question,
-        answer="I don’t have enough source data to answer that reliably.",
+        answer="I can’t answer that reliably from the available Northwind evidence. Try asking about complaint trends, estimated reads, transfers, regional patterns, or the investment scenarios.",
         evidence=[],
-        caveats=["The answer is limited to aggregate facts available in the supplied Northwind datasets."],
-        suggestedFollowUps=suggested or [],
+        caveats=["Ask Pulse uses aggregate facts and calculated metrics from the supplied datasets. It does not receive raw customer records, make causal claims, or invent unsupported forecasts."],
+        suggestedFollowUps=suggested or ["Which regions have the most estimated reads?", "How do transferred complaints compare with other cases?", "What would a $1M investment scenario change?"],
         grounding="insufficientData",
     )
 

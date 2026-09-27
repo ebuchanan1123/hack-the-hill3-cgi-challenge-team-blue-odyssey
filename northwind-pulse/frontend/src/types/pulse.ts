@@ -67,24 +67,6 @@ export type ComplaintStatus = "Open" | "In review" | "Awaiting meter reading" | 
 export type WorkflowComplaintStatus = "Open" | "In progress" | "Resolved";
 export type ResolutionType = "Bill corrected" | "Meter reading confirmed" | "Information provided" | "Escalated" | "Other";
 export type AccountReviewAction = "Cleared for billing" | "Held for validation" | "Meter reading requested" | "Escalated for manual review";
-export interface AskPulseEvidence {
-  id: string;
-  label: string;
-  value: string;
-  source: string;
-  period?: string | null;
-  evidenceType: "sourceFact" | "derivedMetric" | "scenarioAssumption";
-}
-
-export interface AskPulseResponse {
-  question: string;
-  answer: string;
-  evidence: AskPulseEvidence[];
-  caveats: string[];
-  suggestedFollowUps: string[];
-  grounding: "grounded" | "insufficientData";
-}
-
 export type StrategyInterventionId =
   | "targeted-validation"
   | "meterhub-improvement"
