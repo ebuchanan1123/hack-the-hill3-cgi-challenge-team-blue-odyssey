@@ -69,7 +69,8 @@ class StrategyGeneratorTests(unittest.TestCase):
 
         self.assertEqual(result["aiStrategy"]["title"], "Billing reliability first")
         suggestions = result["aiStrategy"]["recommendedInterventions"]
-        self.assertEqual([item["id"] for item in suggestions], ["targeted-validation", "meterhub-improvement"])
+        self.assertEqual([item["id"] for item in suggestions[:2]], ["targeted-validation", "meterhub-improvement"])
+        self.assertIn("targeted-smart-meter-deployment", [item["id"] for item in suggestions])
         self.assertEqual(suggestions[0]["suggestedAllocationUsd"], 40800)
         self.assertEqual(suggestions[1]["suggestedAllocationUsd"], 30000)
         self.assertEqual(result["confidenceStrategies"][1]["budgetUsd"], 100000)

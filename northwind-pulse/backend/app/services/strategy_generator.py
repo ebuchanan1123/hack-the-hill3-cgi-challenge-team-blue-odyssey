@@ -9,7 +9,7 @@ from typing import Any
 import pandas as pd
 
 from app.models.scenarios import ReductionAssumptions, StrategySimulationRequest, StrategyInterventionInput
-from app.models.strategy_generation import GeminiStrategyDraft, StrategyGenerationRequest
+from app.models.strategy_generation import GeminiStrategyDraft, GeminiStrategyRecommendation, StrategyGenerationRequest
 from app.services.analysis import _find_column
 from app.services.ask_pulse import GeminiNotConfiguredError, GeminiServiceError, get_gemini_client
 from app.services.scenarios import _unit_cost
@@ -21,8 +21,9 @@ DEFAULT_IMPACT_ASSUMPTIONS = ReductionAssumptions(conservative=10, base=20, upsi
 # budget as the cost of every recommended program.
 IMPLEMENTATION_CAPACITY_RATES = {
     "targeted-validation": 0.50,
-    "meterhub-improvement": 1.00,
-    "transfer-integration-improvement": 1.00,
+    "meterhub-improvement": 0.50,
+    "transfer-integration-improvement": 0.50,
+    "targeted-smart-meter-deployment": 0.50,
 }
 INTERVENTION_DESCRIPTIONS = {
     "targeted-validation": "Validate estimated-read bills before issuing them; intended to reduce estimated-read complaints and correction work.",
@@ -50,7 +51,7 @@ def _proposal_evidence(frames: dict[str, pd.DataFrame]) -> list[dict[str, Any]]:
             accounts_col = _find_column(meter_reads, ("accounts", "account_count", "customers")) if meter_reads is not None else None
             install_cost = _unit_cost(frames, "Smart meter installation")
             if meter_reads is not None and accounts_col is not None and install_cost is not None:
-                capacity = float(pd.to_numeric(meter_reads[accounts_col], errors="coerce").sum()) * install_cost
+                capacity = min(capacity, float(pd.to_numeric(meter_reads[accounts_col], errors="coerce").sum()) * install_cost)
         evidence.append(
             {
                 "id": intervention_id,
@@ -147,6 +148,32 @@ def generate_investment_strategy(
         )
         for item in recommendations
     }
+    remaining_budget = max(0.0, request.budgetUsd - sum(planned_investments.values()))
+    horizon_years = request.horizonMonths / 12
+    fallback_ids: list[str] = []
+    omitted_options = [item for item in evidence if item["id"] not in planned_investments]
+    omitted_options.sort(
+        key=lambda item: item["eligibleEventsPerYear"] * item["savingsPerEventUsd"] * DEFAULT_IMPACT_ASSUMPTIONS.base / 100 / max(item["implementationCapacityUsd"], 1),
+        reverse=True,
+    )
+    for source in omitted_options:
+        marginal_annual_savings_per_dollar = source["eligibleEventsPerYear"] * source["savingsPerEventUsd"] * DEFAULT_IMPACT_ASSUMPTIONS.base / 100 / max(source["implementationCapacityUsd"], 1)
+        if remaining_budget <= 0 or marginal_annual_savings_per_dollar * horizon_years <= 1:
+            continue
+        allocation = min(remaining_budget, source["implementationCapacityUsd"])
+        if allocation <= 0:
+            continue
+        planned_investments[source["id"]] = allocation
+        recommendations.append(
+            GeminiStrategyRecommendation(
+                id=source["id"],
+                allocationPercent=allocation / request.budgetUsd * 100,
+                rationale="Added by the deterministic optimizer because this supported rollout has positive incremental value within the remaining budget.",
+            )
+        )
+        fallback_ids.append(source["id"])
+        remaining_budget -= allocation
+    final_shares = {item.id: planned_investments[item.id] / request.budgetUsd * 100 for item in recommendations}
     calculator_request = StrategySimulationRequest(
         budgetUsd=request.budgetUsd,
         horizonMonths=request.horizonMonths,
@@ -173,7 +200,7 @@ def generate_investment_strategy(
     ai_recommendations = []
     for item in recommendations:
         source = candidate_info[item.id]
-        weight = normalized_shares[item.id]
+        weight = final_shares[item.id]
         ai_recommendations.append(
             {
                 "id": item.id,
@@ -193,11 +220,12 @@ def generate_investment_strategy(
 
     assumptions = [
         *calculated["assumptions"],
-        "Intervention selection, allocation shares, and rationales are Gemini-generated recommendations, not source facts.",
+        "Gemini selects and explains initial intervention priorities; the deterministic optimizer may add another supported rollout when it has positive incremental value and budget remains.",
         "Gemini does not calculate dollar values, savings, ROI, or payback; the backend computes these from the selected allocations, explicit effect assumptions, Northwind event counts, and unit costs.",
         "Effect ranges are deterministic planning assumptions (conservative 10%, base 20%, upside 30%); they are not measured causal effects.",
         "Each option has a source-derived rollout capacity: validation, MeterHub, and transfer work scale against eligible annual handling-cost baselines; smart-meter deployment scales against eligible accounts × smart-meter installation cost.",
         "Impact scales with the funded share of each rollout capacity, so a larger budget can fund more coverage and produce more modeled savings. These are planning assumptions, not approved project quotes.",
+        f"The optimizer added {', '.join(fallback_ids)} to use additional budget where the modeled incremental horizon benefit remained positive." if fallback_ids else "The optimizer did not add omitted options because their modeled incremental horizon benefit was not positive.",
         *normalization_note,
     ]
     return {
