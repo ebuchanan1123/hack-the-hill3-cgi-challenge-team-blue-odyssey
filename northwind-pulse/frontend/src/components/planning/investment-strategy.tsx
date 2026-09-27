@@ -13,7 +13,7 @@ const compactMoney = new Intl.NumberFormat("en-US", { style: "currency", currenc
 const percent = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 
 const strategyPresets = [
-  { id: "pilot", label: "$100K pilot", budget: "100000", priorities: "Start with a measurable pilot focused on estimated-read complaints and quick operational savings." },
+  { id: "pilot", label: "$250K positive pilot", budget: "250000", priorities: "Start with a positive-return pilot focused on estimated-read complaints and measurable operational savings." },
   { id: "rollout", label: "$1M rollout", budget: "1000000", priorities: "Fund broader rollout coverage across billing reliability, transfer reduction, and low smart-meter regions." },
   { id: "billing", label: "Fix billing estimates", budget: "250000", priorities: "Prioritize modernizing estimation logic and validating high-risk estimated bills before billing." },
   { id: "transfers", label: "Reduce transfers", budget: "250000", priorities: "Prioritize keeping complaint ownership inside Pulse and reducing avoidable system handoffs." },
