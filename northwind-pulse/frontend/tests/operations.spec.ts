@@ -177,6 +177,9 @@ test("Decision Twin sends a brief, renders Gemini options, and asks grounded que
   await page.goto("/decision-twin");
   await expect(page.getByRole("heading", { name: "Investment strategy generator" })).toBeVisible();
   await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await page.getByRole("button", { name: "$100K pilot" }).click();
+  await expect(page.getByRole("spinbutton", { name: "Available investment budget in USD" })).toHaveValue("100000");
+  await expect(page.getByRole("textbox", { name: "Strategy priorities and constraints" })).toContainText("measurable pilot");
   const budget = page.getByRole("spinbutton", { name: "Available investment budget in USD" });
   const horizon = page.getByRole("spinbutton", { name: "Planning horizon in months" });
   const operatingCost = page.getByRole("spinbutton", { name: "Annual operating cost budget in USD" });

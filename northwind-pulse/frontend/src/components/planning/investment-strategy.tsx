@@ -12,6 +12,13 @@ const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD
 const compactMoney = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
 const percent = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 
+const strategyPresets = [
+  { id: "pilot", label: "$100K pilot", budget: "100000", priorities: "Start with a measurable pilot focused on estimated-read complaints and quick operational savings." },
+  { id: "rollout", label: "$1M rollout", budget: "1000000", priorities: "Fund broader rollout coverage across billing reliability, transfer reduction, and low smart-meter regions." },
+  { id: "billing", label: "Fix billing estimates", budget: "250000", priorities: "Prioritize modernizing estimation logic and validating high-risk estimated bills before billing." },
+  { id: "transfers", label: "Reduce transfers", budget: "250000", priorities: "Prioritize keeping complaint ownership inside Pulse and reducing avoidable system handoffs." },
+];
+
 function formatMoney(value: number, compact = false) {
   return (compact ? compactMoney : money).format(value);
 }
@@ -56,6 +63,17 @@ export function InvestmentStrategy() {
   const hasFieldErrors = Object.values(fieldErrors).some(Boolean);
   const selected = result?.confidenceStrategies.find((item) => item.confidence === confidence);
 
+  function applyPreset(preset: typeof strategyPresets[number]) {
+    setBudgetUsd(preset.budget);
+    setHorizonMonths("36");
+    setObjective("maximizeNetSavings");
+    setAnnualOperatingCostUsd("10000");
+    setPortfolioOverlapPercent("25");
+    setPriorities(preset.priorities);
+    setResult(null);
+    setError(null);
+  }
+
   async function generate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (loading || hasFieldErrors) return;
@@ -98,6 +116,11 @@ export function InvestmentStrategy() {
           Gemini selects and explains available intervention types and proposes priority shares. It does not calculate ROI or payback. The backend sizes rollout coverage from Northwind complaint, account, and unit-cost evidence, then calculates each portfolio. Effect ranges, operating costs, and rollout capacities are planning assumptions, not measured effects or approved project quotes.
         </InfoControl>
       </header>
+
+      <div className="strategy-presets" aria-label="Strategy presets">
+        <span>Try a scenario</span>
+        {strategyPresets.map((preset) => <button key={preset.id} type="button" onClick={() => applyPreset(preset)}>{preset.label}</button>)}
+      </div>
 
       <form className="strategy-form" onSubmit={generate}>
         <div className="strategy-global-fields strategy-brief-fields">
