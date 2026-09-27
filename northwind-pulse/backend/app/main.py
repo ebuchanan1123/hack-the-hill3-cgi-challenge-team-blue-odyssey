@@ -22,7 +22,7 @@ from app.services.routing import route_complaint
 from app.services.scenarios import simulate_scenarios
 from app.services.strategy import build_investment_strategy
 from app.services.strategy_generator import StrategyDataUnavailableError, generate_investment_strategy
-from app.services.workflow import get_account_review, merge_complaint_update, save_account_review, save_complaint_update
+from app.services.workflow import get_account_review, learning_summary, merge_complaint_update, save_account_review, save_complaint_update
 
 app = FastAPI(title="Northwind Pulse API", version="0.1.0")
 data_loader = CSVDataLoader()
@@ -189,6 +189,11 @@ def update_account_review(account_id: str, request: AccountReviewUpdate) -> dict
 @app.get("/api/accounts/{account_id}/review", tags=["Prevention"])
 def account_review(account_id: str) -> dict:
     return {"accountId": account_id, **(get_account_review(account_id) or {})}
+
+
+@app.get("/api/learning/summary", tags=["Learning"])
+def learning() -> dict:
+    return learning_summary()
 
 
 @app.post("/api/route", tags=["Complaint resolution"])

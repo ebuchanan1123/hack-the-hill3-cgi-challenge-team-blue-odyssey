@@ -23,3 +23,17 @@ def save_account_review(account_id: str, update: dict[str, Any]) -> dict[str, An
 
 def get_account_review(account_id: str) -> dict[str, Any] | None:
     return account_reviews.get(account_id)
+
+
+def learning_summary() -> dict[str, Any]:
+    resolutions = list(complaint_updates.values())
+    reviews = list(account_reviews.values())
+    return {
+        "complaintFeedbackCount": len(resolutions),
+        "resolvedComplaintCount": sum(item.get("workflowStatus") == "Resolved" for item in resolutions),
+        "accountReviewCount": len(reviews),
+        "rootCauses": sorted({item["rootCause"] for item in resolutions if item.get("rootCause")}),
+        "resolutionTypes": sorted({item["resolutionType"] for item in resolutions if item.get("resolutionType")}),
+        "reviewActions": sorted({item["reviewStatus"] for item in reviews if item.get("reviewStatus")}),
+        "message": "Saved outcomes become feedback for future prevention and routing decisions.",
+    }

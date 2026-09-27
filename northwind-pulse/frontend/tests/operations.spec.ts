@@ -4,6 +4,7 @@ test("Operations and account drawer", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  await page.route("**/api/learning/summary", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ complaintFeedbackCount: 0, resolvedComplaintCount: 0, accountReviewCount: 0, rootCauses: [], message: "Saved outcomes become feedback for future prevention and routing decisions." }) }));
   await page.goto("/");
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { name: "Operations", exact: true })).toBeVisible();

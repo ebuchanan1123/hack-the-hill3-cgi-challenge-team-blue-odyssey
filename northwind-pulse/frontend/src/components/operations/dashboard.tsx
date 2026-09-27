@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Target } from "lucide-react";
 import { PageHeader, MetricCard, InfoControl, priorityLevel, levelLabel } from "@/components/pulse/shared";
 import { PageActions } from "@/components/pulse/page-actions";
@@ -23,6 +23,8 @@ export function Dashboard({ accounts, complaints, usageHistory, statuses, metric
   const [account, setAccount] = useState<PreventRiskAccount | null>(null); const [complaint, setComplaint] = useState<Complaint | null>(null); const [reviewedAccountIds, setReviewedAccountIds] = useState<string[]>(() => readReviewedAccountIds());
   const reviewAccounts = accounts.filter((item) => !reviewedAccountIds.includes(item.accountId)).slice(0, 7); const highRisk = reviewAccounts.filter(a => a.risk === "HIGH").length;
   function handleReviewSaved(accountId: string) { markAccountReviewed(accountId); setReviewedAccountIds((current) => current.includes(accountId) ? current : [...current, accountId]); setAccount(null); }
+  const [learning, setLearning] = useState<{ complaintFeedbackCount: number; resolvedComplaintCount: number; accountReviewCount: number; rootCauses: string[]; message: string } | null>(null);
+  useEffect(() => { fetch("/api/learning/summary").then((response) => response.ok ? response.json() : null).then((value) => setLearning(value)).catch(() => undefined); }, []);
   const exportRows = () => [
     ["Metric", "Value"], ...metrics.map(m => [m.label, m.value]), [],
     ["Account", "Typical usage (kWh)", "Estimated usage (kWh)", "Above typical (%)", "Billing risk", "Recommended action"], ...reviewAccounts.map(a => [a.accountId, a.expectedUsage, a.estimatedUsage, a.deviationPercent, levelLabel(a.risk), a.recommendedAction]), [],
@@ -37,6 +39,7 @@ export function Dashboard({ accounts, complaints, usageHistory, statuses, metric
       <header><div className="section-title"><h2>Flagged bills</h2><InfoControl label="About pre-bill review">Customer-level usage history is simulated for this prototype.</InfoControl></div><span className="section-meta"><Link href="/flagged-bills">View all flagged bills</Link> · {reviewAccounts.length} active · <strong>{highRisk} high risk</strong></span></header>
       <AccountRiskTable accounts={reviewAccounts} onSelect={setAccount} />
     </section>
+    {learning && <section className="learning-strip" aria-labelledby="learning-title"><div><span className="result-eyebrow">LEARN</span><h2 id="learning-title">Feedback is becoming prevention data</h2><p>{learning.message}</p></div><div className="learning-stats"><strong>{learning.resolvedComplaintCount}</strong><span>complaints resolved with feedback</span><strong>{learning.accountReviewCount}</strong><span>pre-bill reviews recorded</span></div>{learning.rootCauses.length > 0 && <div className="learning-causes"><span>Root causes captured</span><b>{learning.rootCauses.join(" · ")}</b></div>}</section>}
     <section className="table-section surface-card">
       <header><div className="section-title"><h2>Recent complaints</h2></div><Link href="/complaints" className="section-link">View all complaints<ArrowRight size={13} aria-hidden="true" /></Link></header>
       <ComplaintTable compact complaints={complaints.slice(0, 4)} statuses={statuses} onSelect={setComplaint} />

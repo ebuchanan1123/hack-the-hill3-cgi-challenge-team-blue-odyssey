@@ -80,6 +80,9 @@ class AnalysisTests(unittest.TestCase):
         self.assertIn("feedback", resolved.json()["message"])
         self.assertEqual(review.status_code, 200)
         self.assertEqual(review.json()["correctedUsageKwh"], 870)
+        learning = TestClient(app).get("/api/learning/summary")
+        self.assertEqual(learning.status_code, 200)
+        self.assertEqual(learning.json()["accountReviewCount"], 1)
 
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(
