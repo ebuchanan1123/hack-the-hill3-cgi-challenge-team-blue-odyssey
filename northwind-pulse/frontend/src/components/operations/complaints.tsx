@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
-import { PageHeader, levelLabel, priorityLevel } from "@/components/pulse/shared";
-import { PageActions } from "@/components/pulse/page-actions";
+import { PageHeader } from "@/components/pulse/shared";
 import { deadlineOrder, getDeadline } from "@/lib/deadline";
 import { ComplaintTable, EmptyResults } from "./operations-tables";
 import { ComplaintDetailSheet } from "./detail-sheets";
@@ -61,8 +60,21 @@ export function Complaints({ complaints: initialComplaints, statuses: initialSta
       setLoading(false);
     }
   }
-  const exportRows = () => [["Complaint", "Category", "Region", "Priority", "Days open", "Deadline", "Status"], ...rows.map(c => [c.id, c.category, c.region, levelLabel(priorityLevel(c.priority)), c.daysOpen, getDeadline(c)?.label ?? "", statuses[c.id] ?? ""])];
   const pageNumber = Math.floor(offset / limit) + 1;
   const pageCount = Math.max(1, Math.ceil(totalCount / limit));
-  return <><PageHeader title="Complaints" actions={<PageActions exportName="northwind-complaints" getRows={exportRows} />} /><div className="toolbar"><label className="search-box"><Search size={16} /><span className="sr-only">Search complaints</span><input placeholder="Search ID, category, region…" value={query} onChange={e => setQuery(e.target.value)} /></label><div className="filters">{Object.entries(options).map(([label, values]) => <label key={label} className={`filter-${label.toLowerCase()}${filters[label] ? " is-active" : ""}`}><span className="filter-name" aria-hidden="true">{label}</span><span className="filter-value" aria-hidden="true">{values.find(option => option.value === filters[label])?.label ?? "All"}</span><select aria-label={label} value={filters[label] ?? ""} onChange={e => { setFilters({ ...filters, [label]: e.target.value }); setOffset(0); }}><option value="">All</option>{values.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}</select></label>)}<label className={`sort-control${sort !== "recent" ? " is-active" : ""}`}><span>Sort by</span><select aria-label="Sort complaints" value={sort} onChange={e => { setSort(e.target.value); setOffset(0); }}><option value="recent">Most recent</option><option value="status">Open first</option><option value="priority">High priority first</option></select></label>{active && <button type="button" className="clear-filters" onClick={reset} aria-label="Clear all filters" title="Clear all filters"><X size={13} aria-hidden="true" /><span className="clear-text">Clear</span></button>}</div><p className="table-count" role="status">{active ? `${rows.length} matches on page` : `${offset + 1}-${Math.min(offset + limit, totalCount)} of ${totalCount} complaints`}</p></div><section className={`table-section${loading ? " is-loading" : ""}`}>{rows.length ? <ComplaintTable complaints={rows} statuses={statuses} selectedId={selected?.id} onSelect={setSelected} /> : <EmptyResults onReset={reset} />}</section><nav className="pagination" aria-label="Complaint pages"><button type="button" onClick={() => void changePage(offset - limit)} disabled={offset === 0 || loading}>Previous</button><span>Page {pageNumber} of {pageCount}</span><button type="button" onClick={() => void changePage(offset + limit)} disabled={offset + limit >= totalCount || loading}>Next</button></nav><ComplaintDetailSheet complaint={selected} status={selected ? statuses[selected.id] : undefined} onClose={() => setSelected(null)} /></>;
+  return <>
+    <PageHeader title="Complaints" />
+    <div className="toolbar">
+      <label className="search-box"><Search size={16} /><span className="sr-only">Search complaints</span><input placeholder="Search ID, category, region..." value={query} onChange={(event) => setQuery(event.target.value)} /></label>
+      <div className="filters">
+        {Object.entries(options).map(([label, values]) => <label key={label} className={`filter-${label.toLowerCase()}${filters[label] ? " is-active" : ""}`}><span className="filter-name" aria-hidden="true">{label}</span><span className="filter-value" aria-hidden="true">{values.find((option) => option.value === filters[label])?.label ?? "All"}</span><select aria-label={label} value={filters[label] ?? ""} onChange={(event) => { setFilters({ ...filters, [label]: event.target.value }); setOffset(0); }}><option value="">All</option>{values.map(({ value, label: optionLabel }) => <option key={value} value={value}>{optionLabel}</option>)}</select></label>)}
+        <label className={`sort-control${sort !== "recent" ? " is-active" : ""}`}><span>Sort by</span><select aria-label="Sort complaints" value={sort} onChange={(event) => { setSort(event.target.value); setOffset(0); }}><option value="recent">Most recent</option><option value="status">Open first</option><option value="priority">High priority first</option></select></label>
+        {active && <button type="button" className="clear-filters" onClick={reset} aria-label="Clear all filters" title="Clear all filters"><X size={13} aria-hidden="true" /><span className="clear-text">Clear</span></button>}
+      </div>
+      <p className="table-count" role="status">{active ? `${rows.length} matches on page` : `${offset + 1}-${Math.min(offset + limit, totalCount)} of ${totalCount} complaints`}</p>
+    </div>
+    <section className={`table-section${loading ? " is-loading" : ""}`}>{rows.length ? <ComplaintTable complaints={rows} statuses={statuses} selectedId={selected?.id} onSelect={setSelected} /> : <EmptyResults onReset={reset} />}</section>
+    <nav className="pagination" aria-label="Complaint pages"><button type="button" onClick={() => void changePage(offset - limit)} disabled={offset === 0 || loading}>Previous</button><span>Page {pageNumber} of {pageCount}</span><button type="button" onClick={() => void changePage(offset + limit)} disabled={offset + limit >= totalCount || loading}>Next</button></nav>
+    <ComplaintDetailSheet complaint={selected} status={selected ? statuses[selected.id] : undefined} onClose={() => setSelected(null)} />
+  </>;
 }
