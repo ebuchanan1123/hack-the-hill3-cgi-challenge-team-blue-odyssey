@@ -93,7 +93,11 @@ def _transfer_context(frame: pd.DataFrame | None, category: str, source_system: 
     return {"risk": risk, "rate": category_rate, "overallRate": overall_rate, "slower": slower, "systemNote": system_note}
 
 
-def route_complaint(payload: dict[str, Any], frames: dict[str, pd.DataFrame]) -> dict[str, Any]:
+def route_complaint(
+    payload: dict[str, Any],
+    frames: dict[str, pd.DataFrame],
+    context_cache: dict[str, dict[tuple[Any, ...], Any]] | None = None,
+) -> dict[str, Any]:
     """Route one case using explicit category, SLA, and historical transfer rules."""
     category = str(payload["category"])
     normalized_category = _normalized(category)
@@ -106,9 +110,15 @@ def route_complaint(payload: dict[str, Any], frames: dict[str, pd.DataFrame]) ->
     reasons = [f"Category '{category}' maps to the {queue} queue"]
     complaints = frames.get("complaints")
     supplied_sla = payload.get("slaDays")
-    sla_days = float(supplied_sla) if supplied_sla is not None else _sla_days(
-        complaints, category, str(payload["priority"])
-    )
+    sla_key = (category, str(payload["priority"]))
+    if supplied_sla is not None:
+        sla_days = float(supplied_sla)
+    elif context_cache is not None and sla_key in context_cache.setdefault("sla", {}):
+        sla_days = context_cache["sla"][sla_key]
+    else:
+        sla_days = _sla_days(complaints, category, str(payload["priority"]))
+        if context_cache is not None:
+            context_cache.setdefault("sla", {})[sla_key] = sla_days
     days_open = float(payload["daysOpen"])
     if sla_days is None or sla_days <= 0:
         sla_risk = "MEDIUM"
@@ -137,7 +147,13 @@ def route_complaint(payload: dict[str, Any], frames: dict[str, pd.DataFrame]) ->
         next_action = "Arrange a meter read or field visit"
         reasons.append("Complaint records that no meter read was taken")
 
-    transfer = _transfer_context(complaints, category, payload.get("sourceSystem"))
+    transfer_key = (category, payload.get("sourceSystem"))
+    if context_cache is not None and transfer_key in context_cache.setdefault("transfer", {}):
+        transfer = context_cache["transfer"][transfer_key]
+    else:
+        transfer = _transfer_context(complaints, category, payload.get("sourceSystem"))
+        if context_cache is not None:
+            context_cache.setdefault("transfer", {})[transfer_key] = transfer
     if transfer["systemNote"]:
         reasons.append("CaseTrack history can be lost during transfers, according to the system notes")
     if transfer["slower"]:

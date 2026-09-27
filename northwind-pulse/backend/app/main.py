@@ -2,6 +2,7 @@
 
 from typing import Literal
 
+import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -23,6 +24,16 @@ from app.services.strategy_generator import StrategyDataUnavailableError, genera
 
 app = FastAPI(title="Northwind Pulse API", version="0.1.0")
 data_loader = CSVDataLoader()
+
+
+def _complaint_age_days(frame):
+    opened = pd.to_datetime(frame["date_opened"], errors="coerce") if "date_opened" in frame.columns else pd.Series(index=frame.index, dtype="float64")
+    reference = opened.max()
+    ages = pd.to_numeric(frame.get("days_to_close"), errors="coerce") if "days_to_close" in frame.columns else pd.Series(index=frame.index, dtype="float64")
+    open_mask = frame.get("status", pd.Series(index=frame.index, dtype="string")).astype(str).str.lower().eq("open")
+    if pd.notna(reference):
+        ages = ages.where(~open_mask, (reference - opened).dt.days)
+    return ages
 
 
 class HealthResponse(BaseModel):
@@ -63,17 +74,79 @@ def metrics() -> dict:
 def complaints(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=1000),
+    search: str | None = Query(default=None, max_length=200),
+    category: str | None = Query(default=None, max_length=120),
+    region: str | None = Query(default=None, max_length=120),
+    priority: str | None = Query(default=None, max_length=20),
+    status: str | None = Query(default=None, max_length=40),
+    sort: str = Query(default="recent", pattern="^(recent|status|priority|deadline)$"),
+    deadline: str | None = Query(default=None, max_length=20),
 ) -> dict:
     frames, availability = data_loader.load()
     frame = frames.get("complaints")
-    total = len(frame) if frame is not None else 0
-    page = frame.iloc[offset : offset + limit] if frame is not None else None
+    filtered = frame.copy() if frame is not None else None
+    if filtered is not None:
+        text = filtered.astype(str).agg(" ".join, axis=1).str.lower()
+        if search:
+            filtered = filtered.loc[text.str.contains(search.strip().lower(), regex=False, na=False)]
+        if category:
+            filtered = filtered.loc[filtered["category"].astype(str).eq(category)]
+        if region:
+            filtered = filtered.loc[filtered["region"].astype(str).eq(region)]
+        if priority:
+            filtered = filtered.loc[filtered["priority"].astype(str).eq(priority)]
+        if status:
+            filtered = filtered.loc[filtered["status"].astype(str).eq(status)]
+        complaint_ages = _complaint_age_days(frame).loc[filtered.index]
+        if deadline:
+            targets = {"P1": 5, "P2": 10, "P3": 20}
+            target_days = filtered["priority"].astype(str).map(targets)
+            remaining = target_days - complaint_ages
+            if deadline == "Overdue":
+                filtered = filtered.loc[remaining < 0]
+            elif deadline == "Due soon":
+                filtered = filtered.loc[remaining.ge(0) & remaining.le(2)]
+            elif deadline == "On track":
+                filtered = filtered.loc[remaining > 2]
+        sort_columns = ["_sort", "date_opened"] if "date_opened" in filtered.columns else ["_sort"]
+        sort_ascending = [True, False] if len(sort_columns) == 2 else [True]
+        if sort == "status":
+            filtered = filtered.assign(_sort=filtered["status"].astype(str).map(lambda value: 0 if value.lower() == "open" else 1)).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
+        elif sort == "priority":
+            filtered = filtered.assign(_priority=filtered["priority"].astype(str).map({"P1": 0, "P2": 1, "P3": 2}).fillna(3), _age=complaint_ages).sort_values(["_priority", "_age"], ascending=[True, False]).drop(columns=["_priority", "_age"])
+        elif sort == "deadline":
+            targets = {"P1": 5, "P2": 10, "P3": 20}
+            remaining = filtered["priority"].astype(str).map(targets) - complaint_ages
+            filtered = filtered.assign(_sort=remaining).sort_values(sort_columns, ascending=sort_ascending).drop(columns="_sort")
+        elif sort == "recent" and "date_opened" in filtered.columns:
+            filtered = filtered.sort_values("date_opened", ascending=False)
+    total = len(filtered) if filtered is not None else 0
+    page = filtered.iloc[offset : offset + limit] if filtered is not None else None
     records = complaint_records(page)
+    enriched: list[dict] = []
+    route_context_cache: dict[str, dict[tuple[object, ...], object]] = {}
+    page_ages = _complaint_age_days(frame).loc[page.index].tolist() if page is not None else []
+    for record, age in zip(records, page_ages):
+        routed = route_complaint(
+            {
+                "id": record.get("id", "unknown"),
+                "category": record.get("category", "Unknown"),
+                "region": record.get("region", "Unknown"),
+                "priority": record.get("priority", "P3"),
+                "daysOpen": age if pd.notna(age) else record.get("daysToClose", 0) or 0,
+                "sourceSystem": record.get("sourceSystem"),
+                "slaDays": record.get("slaDays"),
+            },
+            frames,
+            route_context_cache,
+        )
+        enriched.append({**record, **routed})
     return {
-        "items": records,
+        "items": enriched,
         "total": total,
         "offset": offset,
         "limit": limit,
+        "sort": sort,
         "dataAvailability": availability,
     }
 

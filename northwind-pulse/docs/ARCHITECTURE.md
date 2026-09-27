@@ -5,9 +5,11 @@ Its operating model is **PREVENT → RESOLVE → LEARN → INVEST**.
 
 ## Initialization boundary
 
-Only a frontend health page and a backend health endpoint are implemented.
-Operations, Intelligence, Decision Twin, and Ask Pulse must wait for initialization
-confirmation. There are no datasets in this repository yet.
+The frontend Operations, Complaints, Decision Twin, and Ask Pulse surfaces are
+implemented. Operations and Complaints consume backend complaint and aggregate
+metric APIs when available; synthetic account-risk data remains a demo boundary.
+The backend loads the supplied Northwind datasets and exposes deterministic
+analysis, routing, prevention, and investment-calculation endpoints.
 
 ## Independent development
 
@@ -30,8 +32,9 @@ changing presentation components. Keep any TypeScript types in `frontend/` and
 Pydantic models in `backend/`; the documented contract is the shared reference.
 
 The health page checks only frontend rendering and does not require a running backend.
-The backend `/health` endpoint reports API process liveness. Browser-to-backend
-requests, CORS, and API URL configuration are deferred until integration is needed.
+The backend `/health` endpoint reports API process liveness. Server-side frontend
+data access uses `NORTHWIND_BACKEND_URL`, with fixture fallback for offline demo
+startup. Gemini credentials remain backend-only.
 
 ## Product constraints for later implementation
 

@@ -7,7 +7,7 @@ import { PageActions } from "@/components/pulse/page-actions";
 import { AccountRiskTable, ComplaintTable } from "./operations-tables";
 import { AccountDetailSheet, ComplaintDetailSheet } from "./detail-sheets";
 import { getDeadline } from "@/lib/deadline";
-import type { OperationsData, Complaint, ComplaintStatus, Metric, PreventRiskAccount } from "@/types/pulse";
+import type { OperationsData, Complaint, PreventRiskAccount } from "@/types/pulse";
 
 /** One-line focus for the period, derived from the complaint queue. */
 function periodFocus(complaints: Complaint[]) {
@@ -18,7 +18,7 @@ function periodFocus(complaints: Complaint[]) {
   return `${overdue.length} of ${complaints.length} complaints are past their resolution deadline${count > 1 ? `, most in ${region}` : ""}.`;
 }
 
-export function Dashboard({ accounts, complaints, usageHistory, statuses, metrics }: OperationsData & { statuses: Record<string, ComplaintStatus>; metrics: Metric[] }) {
+export function Dashboard({ accounts, complaints, usageHistory, statuses, metrics }: OperationsData) {
   const [account, setAccount] = useState<PreventRiskAccount | null>(null); const [complaint, setComplaint] = useState<Complaint | null>(null);
   const reviewAccounts = accounts.slice(0, 7); const highRisk = reviewAccounts.filter(a => a.risk === "HIGH").length;
   const exportRows = () => [

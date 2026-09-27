@@ -99,9 +99,9 @@ h3 { font-size: 12px; font-weight: 600; }
 .metric-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .metric-icon { display: grid; flex-shrink: 0; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--tone-soft); color: var(--tone); }
 .metric-label { overflow: hidden; color: var(--ink-2); font-size: 12px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
-.metric-body { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.metric-body { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 10px; overflow: hidden; }
 .metric-body strong { color: var(--ink); font-size: 26px; font-weight: 600; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.sparkline { width: 72px; height: 26px; flex-shrink: 1; min-width: 40px; color: var(--tone); overflow: visible; }
+.sparkline { display: block; width: 72px; max-width: 72px; height: 26px; flex: 0 1 72px; min-width: 0; color: var(--tone); overflow: hidden; }
 .metric-change { display: inline-flex; align-items: center; gap: 5px; overflow: hidden; font-size: 11px; font-weight: 500; white-space: nowrap; }
 .metric-change.is-better { color: var(--green); }
 .metric-change.is-worse { color: var(--red); }
@@ -138,6 +138,11 @@ tbody tr.selected-row td:first-child { box-shadow: inset 3px 0 0 var(--accent); 
 .record-link { color: var(--accent); font-weight: 600; font-size: 12.5px; }
 .record-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .table-count { flex-shrink: 0; margin-left: auto; padding: 0 6px 0 8px; color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.table-section.is-loading { opacity: .55; pointer-events: none; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 14px 0 0; color: var(--ink-3); font-size: 12px; }
+.pagination button { min-width: 76px; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink-2); font-size: 12px; }
+.pagination button:not(:disabled):hover { border-color: #b9cde5; background: var(--surface-tint); color: var(--ink); }
+.pagination button:disabled { cursor: default; opacity: .45; }
 .empty-results { display: grid; justify-items: center; gap: 16px; padding: 56px; border: 1px dashed #d3deeb; border-radius: var(--radius-card); background: var(--surface); }
 .empty-results h3 { font-size: 14px; }
 
@@ -190,6 +195,9 @@ tbody tr.selected-row td:first-child { box-shadow: inset 3px 0 0 var(--accent); 
 .filters label.is-active .filter-value { color: var(--accent-strong); }
 .clear-filters { display: inline-flex; flex-shrink: 0; align-items: center; gap: 4px; height: var(--control-h); padding: 0 10px; border-radius: 9px; color: var(--accent); font-size: 12px; font-weight: 500; }
 .clear-filters:hover { background: var(--accent-soft); }
+.sort-control { display: flex; align-items: center; gap: 6px; height: var(--control-h); padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: white; color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.sort-control.is-active { border-color: #bcd2ec; background: var(--accent-soft); color: var(--accent-strong); }
+.sort-control select { border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 500; }
 
 /* ---------- Drawer ---------- */
 .evidence-dialog { position: fixed; inset: 0 0 0 auto; width: min(500px, 100vw); height: 100dvh; max-width: 100vw; max-height: 100dvh; margin: 0; padding: 0; border: 0; border-left: 1px solid var(--line); background: white; color: var(--ink-2); box-shadow: -24px 0 48px -24px rgb(15 42 75 / .25); }
@@ -410,7 +418,7 @@ dd { color: var(--ink); font-size: 13px; }
   .metric-card { padding: 14px; }
   .metric-body { flex-direction: column; align-items: flex-start; gap: 8px; }
   .metric-body strong { font-size: 25px; }
-  .sparkline { width: 100%; height: 26px; }
+  .sparkline { width: 100%; max-width: 100%; flex: 1 1 auto; height: 26px; }
   .metric-label { font-size: 11.5px; }
   .surface-card > header { padding: 12px 14px; flex-wrap: wrap; }
   .toolbar { padding: 8px; }

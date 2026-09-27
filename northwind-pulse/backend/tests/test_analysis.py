@@ -1,13 +1,72 @@
 """Tests for deterministic calculations using isolated fixture data."""
 
 import unittest
+from unittest.mock import patch
 
 import pandas as pd
+from fastapi.testclient import TestClient
 
+from app.main import app
 from app.services.analysis import analyze_data, complaint_records
 
 
 class AnalysisTests(unittest.TestCase):
+    def test_complaint_api_adds_deterministic_routing_fields(self) -> None:
+        complaints = pd.DataFrame(
+            {
+                "complaint_id": ["C1"],
+                "category": ["Billing - estimated read"],
+                "region": ["North"],
+                "priority": ["P1"],
+                "days_open": [12],
+                "source_system": ["SYS-01"],
+                "sla_days": [10],
+                "status": ["Open"],
+            }
+        )
+        with patch("app.main.data_loader.load", return_value=({"complaints": complaints}, {"status": "available"})):
+            response = TestClient(app).get("/api/complaints?limit=1")
+
+        self.assertEqual(response.status_code, 200)
+        item = response.json()["items"][0]
+        self.assertEqual(item["id"], "C1")
+        self.assertEqual(item["slaRisk"], "HIGH")
+        self.assertEqual(item["recommendedQueue"], "Meter & Billing Resolution")
+        self.assertEqual(item["nextAction"], "Validate meter reading")
+        self.assertTrue(any("estimated read" in reason for reason in item["reasons"]))
+
+    def test_complaint_api_filters_before_pagination_and_sorts_priority(self) -> None:
+        complaints = pd.DataFrame(
+            {
+                "complaint_id": [f"C{index}" for index in range(12)],
+                "category": ["Billing"] * 12,
+                "region": ["North"] * 12,
+                "priority": ["P3", "P1", "P2", "P3", "P1", "P2", "P3", "P3", "P2", "P3", "P1", "P3"],
+                "days_open": list(range(12)),
+                "source_system": ["SYS-01"] * 12,
+                "sla_days": [20] * 12,
+                "status": ["Open"] * 12,
+                "date_opened": [f"2025-01-{index + 1:02d}" for index in range(12)],
+            }
+        )
+        with patch("app.main.data_loader.load", return_value=({"complaints": complaints}, {"status": "available"})):
+            response = TestClient(app).get("/api/complaints?category=Billing&priority=P1&limit=10&sort=priority")
+            recent_response = TestClient(app).get("/api/complaints?limit=2&sort=recent")
+            due_soon_response = TestClient(app).get("/api/complaints?status=Open&deadline=Due%20soon&limit=10")
+
+        body = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(body["total"], 3)
+        self.assertEqual(len(body["items"]), 3)
+        self.assertTrue(all(item["priority"] == "P1" for item in body["items"]))
+        self.assertEqual([item["id"] for item in body["items"]], ["C1", "C4", "C10"])
+
+        recent_items = recent_response.json()["items"]
+        self.assertEqual([item["id"] for item in recent_items], ["C11", "C10"])
+        due_soon_body = due_soon_response.json()
+        self.assertEqual(due_soon_body["total"], 1)
+        self.assertEqual({item["id"] for item in due_soon_body["items"]}, {"C2"})
+
     def test_complaint_metrics_and_transfer_comparison(self) -> None:
         complaints = pd.DataFrame(
             {
