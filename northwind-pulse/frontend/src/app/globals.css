@@ -354,6 +354,7 @@ dd { color: var(--ink); font-size: 13px; }
 .recommendation-name { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .recommendation-name h4, .allocation-copy > strong { color: var(--ink-2); font-size: 12px; font-weight: 600; }
 .recommendation-copy p, .allocation-copy > span { color: var(--ink-3); font-size: 11px; line-height: 1.55; }
+.recommendation-copy p strong { color: var(--ink-2); font-weight: 600; }
 .recommendation-copy small, .allocation-copy > small { display: block; color: var(--ink-3); font-size: 9px; line-height: 1.45; }
 .recommendation-status { padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-3); background: white; font-size: 8px; }
 .recommendation-status.funded { border-color: #d5e8dd; color: var(--green); background: #f0f8f3; }

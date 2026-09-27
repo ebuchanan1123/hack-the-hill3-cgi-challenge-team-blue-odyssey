@@ -186,7 +186,7 @@ function StrategyResults({
         {result.aiStrategy.recommendedInterventions.map((item, index) => (
           <article className="ai-recommendation-card" key={item.id}>
             <span className="recommendation-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-            <div className="recommendation-copy"><div className="recommendation-name"><h4>{item.name}</h4><span className={item.selectedInBaseCase ? "recommendation-status funded" : "recommendation-status"}>{item.selectedInBaseCase ? "In base plan" : "Not selected"}</span></div><p>{item.rationale}</p><small>Data basis: {item.eligibleEventsPerYear.toLocaleString()} {item.eventLabel} per year · {formatMoney(item.savingsPerEventUsd)} saved per event</small></div>
+            <div className="recommendation-copy"><div className="recommendation-name"><h4>{item.name}</h4><span className={item.selectedInBaseCase ? "recommendation-status funded" : "recommendation-status"}>{item.selectedInBaseCase ? "In base plan" : "Not selected"}</span></div><p><strong>What it funds:</strong> {item.description}</p><p><strong>Why it is suggested:</strong> {item.rationale}</p><small>Evidence basis: {item.eligibleEventsPerYear.toLocaleString()} {item.eventLabel} per year · {formatMoney(item.savingsPerEventUsd)} saved per event</small></div>
             <div className="recommendation-allocation"><strong>{formatMoney(item.suggestedAllocationUsd, true)}</strong><span>estimated implementation</span><span>{percent.format(item.suggestedAllocationPercent)}% priority share</span></div>
           </article>
         ))}

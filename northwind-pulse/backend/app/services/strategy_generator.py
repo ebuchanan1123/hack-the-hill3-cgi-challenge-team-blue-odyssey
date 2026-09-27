@@ -26,10 +26,10 @@ IMPLEMENTATION_CAPACITY_RATES = {
     "targeted-smart-meter-deployment": 0.50,
 }
 INTERVENTION_DESCRIPTIONS = {
-    "targeted-validation": "Validate estimated-read bills before issuing them; intended to reduce estimated-read complaints and correction work.",
-    "meterhub-improvement": "Improve the MeterHub estimation process and use corrected-bill feedback; intended to reduce estimated-read and no-read complaints.",
-    "targeted-smart-meter-deployment": "Target low-smart-meter-penetration regions for installation; intended to reduce meter-related complaints.",
-    "transfer-integration-improvement": "Improve case-history integration and reduce avoidable transfers; savings are the handling-cost difference for fewer transferred cases, not complaints avoided.",
+    "targeted-validation": "Fund a pre-bill review step for high-risk estimated reads; only flagged bills go to staff before they are issued.",
+    "meterhub-improvement": "Modernize estimation logic and feedback loops for estimated and missing reads; improves how usage is calculated before billing.",
+    "targeted-smart-meter-deployment": "Install smart meters in low-penetration regions; selected accounts move from estimated/manual reads to actual readings.",
+    "transfer-integration-improvement": "Connect case history across systems and keep ownership inside Pulse; reduces duplicate handoffs and transfer-related handling cost.",
 }
 
 
