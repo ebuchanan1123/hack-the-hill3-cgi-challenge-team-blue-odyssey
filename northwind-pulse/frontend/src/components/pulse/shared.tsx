@@ -17,11 +17,11 @@ export function PriorityLabel({ priority }: { priority: string }) { const level 
 export function InfoControl({ label = "About this data", title, children }: { label?: string; title?: string; children: ReactNode }) {
   return <details className="info-control"><summary aria-label={label} title={label}><Info size={16} /></summary><div className="info-popover">{title && <strong>{title}</strong>}<div className="info-body">{children}</div></div></details>;
 }
-const pageContext: Record<string, string> = { Dashboard: "Operational overview", Complaints: "Active cases and routing", "Decision Twin": "Investment scenario simulator" };
+const pageContext: Record<string, string> = { Operations: "Billing risk and complaint operations", Complaints: "Active cases and routing" };
 export function PageHeader({ title, hero = false, actions, children }: { title: string; hero?: boolean; actions?: ReactNode; children?: ReactNode }) {
   return <header className={hero ? "page-header page-hero" : "page-header"}>
     {hero && <HeroMotif />}
-    <div className="page-header-row"><div className="page-title"><h1>{title}</h1><p>{pageContext[title]}</p></div>{actions}</div>
+    <div className="page-header-row"><div className="page-title"><h1>{title}</h1>{pageContext[title] && <p>{pageContext[title]}</p>}</div>{actions}</div>
     {children}
   </header>;
 }

@@ -18,7 +18,7 @@ from app.services.scenarios import simulate_scenarios
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.1-flash-lite"
 MAX_EVIDENCE_ITEMS = 60
 
 
@@ -335,7 +335,7 @@ def _select_evidence(question: str, facts: list[EvidenceFact]) -> list[EvidenceF
     return selected[:MAX_EVIDENCE_ITEMS]
 
 
-def _get_gemini_client() -> Any:
+def get_gemini_client() -> Any:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise GeminiNotConfiguredError("GEMINI_API_KEY is not configured")
@@ -370,7 +370,7 @@ def answer_question(
     if not available_facts:
         return _fallback_response(question)
 
-    gemini = client or _get_gemini_client()
+    gemini = client or get_gemini_client()
     evidence_payload = [fact.prompt_record() for fact in available_facts]
     system_instruction = (
         "You are AskNorthwind, an assistant explaining Northwind Pulse challenge data. "
@@ -398,10 +398,7 @@ def answer_question(
                 "schema": GeminiAnswerDraft.model_json_schema(),
             },
             store=False,
-            generation_config=types.GenerationConfig(
-                temperature=0.1,
-                max_output_tokens=700,
-            ),
+            generation_config={"temperature": 0.1, "max_output_tokens": 700},
         )
         if not interaction.output_text:
             raise ValueError("Gemini returned no structured text")

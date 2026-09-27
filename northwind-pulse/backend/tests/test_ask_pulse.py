@@ -74,7 +74,7 @@ class AskPulseTests(unittest.TestCase):
         self.assertEqual(result.evidence[0].value, "2")
         self.assertEqual(result.evidence[0].source, "northwind_complaints.csv")
         self.assertEqual(result.suggestedFollowUps, ["What is the open backlog?"])
-        self.assertEqual(client.interactions.last_request["model"], "gemini-2.5-flash")
+        self.assertEqual(client.interactions.last_request["model"], "gemini-3.1-flash-lite")
         self.assertFalse(client.interactions.last_request["store"])
         self.assertIn("only using the supplied evidence", client.interactions.last_request["system_instruction"])
         response_format = client.interactions.last_request["response_format"]
@@ -107,7 +107,7 @@ class AskPulseTests(unittest.TestCase):
         )
         with (
             patch("app.main.data_loader.load", return_value=(self.frames, self.availability)),
-            patch("app.services.ask_pulse._get_gemini_client", return_value=client),
+            patch("app.services.ask_pulse.get_gemini_client", return_value=client),
         ):
             response = TestClient(app).post("/api/ask-pulse", json={"question": "How many complaints?"})
 
