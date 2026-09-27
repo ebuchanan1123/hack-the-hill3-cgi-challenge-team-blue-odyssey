@@ -7,6 +7,7 @@ import { PageActions } from "@/components/pulse/page-actions";
 import { AccountRiskTable, ComplaintTable } from "./operations-tables";
 import { AccountDetailSheet, ComplaintDetailSheet } from "./detail-sheets";
 import { getDeadline } from "@/lib/deadline";
+import { markAccountReviewed, readReviewedAccountIds } from "@/lib/reviewed-accounts";
 import type { OperationsData, Complaint, PreventRiskAccount } from "@/types/pulse";
 
 /** One-line focus for the period, derived from the complaint queue. */
@@ -19,8 +20,9 @@ function periodFocus(complaints: Complaint[]) {
 }
 
 export function Dashboard({ accounts, complaints, usageHistory, statuses, metrics }: OperationsData) {
-  const [account, setAccount] = useState<PreventRiskAccount | null>(null); const [complaint, setComplaint] = useState<Complaint | null>(null);
-  const reviewAccounts = accounts.slice(0, 7); const highRisk = reviewAccounts.filter(a => a.risk === "HIGH").length;
+  const [account, setAccount] = useState<PreventRiskAccount | null>(null); const [complaint, setComplaint] = useState<Complaint | null>(null); const [reviewedAccountIds, setReviewedAccountIds] = useState<string[]>(() => readReviewedAccountIds());
+  const reviewAccounts = accounts.filter((item) => !reviewedAccountIds.includes(item.accountId)).slice(0, 7); const highRisk = reviewAccounts.filter(a => a.risk === "HIGH").length;
+  function handleReviewSaved(accountId: string) { markAccountReviewed(accountId); setReviewedAccountIds((current) => current.includes(accountId) ? current : [...current, accountId]); setAccount(null); }
   const exportRows = () => [
     ["Metric", "Value"], ...metrics.map(m => [m.label, m.value]), [],
     ["Account", "Typical usage (kWh)", "Estimated usage (kWh)", "Above typical (%)", "Billing risk", "Recommended action"], ...reviewAccounts.map(a => [a.accountId, a.expectedUsage, a.estimatedUsage, a.deviationPercent, levelLabel(a.risk), a.recommendedAction]), [],
@@ -32,14 +34,14 @@ export function Dashboard({ accounts, complaints, usageHistory, statuses, metric
     </PageHeader>
     <div className="metrics-grid">{metrics.map(metric => <MetricCard key={metric.label} {...metric} />)}</div>
     <section className="table-section surface-card">
-      <header><div className="section-title"><h2>Flagged bills</h2><InfoControl label="About pre-bill review">Customer-level usage history is simulated for this prototype.</InfoControl></div><span className="section-meta">{reviewAccounts.length} accounts · <strong>{highRisk} high risk</strong></span></header>
+      <header><div className="section-title"><h2>Flagged bills</h2><InfoControl label="About pre-bill review">Customer-level usage history is simulated for this prototype.</InfoControl></div><span className="section-meta"><Link href="/flagged-bills">View all flagged bills</Link> · {reviewAccounts.length} active · <strong>{highRisk} high risk</strong></span></header>
       <AccountRiskTable accounts={reviewAccounts} onSelect={setAccount} />
     </section>
     <section className="table-section surface-card">
       <header><div className="section-title"><h2>Recent complaints</h2></div><Link href="/complaints" className="section-link">View all complaints<ArrowRight size={13} aria-hidden="true" /></Link></header>
       <ComplaintTable compact complaints={complaints.slice(0, 4)} statuses={statuses} onSelect={setComplaint} />
     </section>
-    <AccountDetailSheet account={account} history={account ? usageHistory[account.accountId] ?? [] : []} onClose={() => setAccount(null)} />
+    <AccountDetailSheet account={account} history={account ? usageHistory[account.accountId] ?? [] : []} onClose={() => setAccount(null)} onReviewSaved={handleReviewSaved} />
     <ComplaintDetailSheet complaint={complaint} status={complaint ? statuses[complaint.id] : undefined} onClose={() => setComplaint(null)} />
   </>;
 }
