@@ -194,7 +194,7 @@ function StrategyResults({
     { label: "Allocated", value: (item) => formatMoney(item.allocatedUsd) },
     { label: "Annual net savings", value: (item) => formatMoney(item.annualNetSavingsUsd) },
     { label: "Horizon net benefit", value: (item) => formatMoney(item.horizonNetBenefitUsd) },
-    { label: "ROI", value: (item) => item.roiPercent === null ? "—" : `${percent.format(item.roiPercent)}%` },
+    { label: "ROI on total cost", value: (item) => item.roiPercent === null ? "—" : `${percent.format(item.roiPercent)}%` },
     { label: "Payback", value: (item) => displayPayback(item.paybackMonths) },
   ];
 
@@ -219,7 +219,7 @@ function StrategyResults({
         <div><span>Investment allocated <InfoControl label="Investment allocated definition">The one-time implementation investment selected by the deterministic calculator.</InfoControl></span><strong>{formatMoney(selected.allocatedUsd, true)}</strong><small>{formatMoney(selected.unallocatedBudgetUsd, true)} budget remaining</small></div>
         <div><span>Annual net savings <InfoControl label="Annual net savings definition">Projected annual gross savings after annual operating costs.</InfoControl></span><strong>{formatMoney(selected.annualNetSavingsUsd, true)}</strong><small>after annual operating costs</small></div>
         <div><span>Net benefit · {selected.horizonMonths} months <InfoControl label="Net benefit definition">Savings over the selected horizon minus the initial investment and operating costs.</InfoControl></span><strong>{formatMoney(selected.horizonNetBenefitUsd, true)}</strong><small>after investment and operating costs</small></div>
-        <div><span>Simple payback <InfoControl label="Simple payback definition">Months until cumulative annual net savings recover the initial investment.</InfoControl></span><strong>{displayPayback(selected.paybackMonths)}</strong><small>ROI: {selected.roiPercent === null ? "—" : `${percent.format(selected.roiPercent)}%`}</small></div>
+        <div><span>Simple payback <InfoControl label="Simple payback definition">Months until cumulative annual net savings recover the initial investment.</InfoControl></span><strong>{displayPayback(selected.paybackMonths)}</strong><small>ROI on total projected cost: {selected.roiPercent === null ? "—" : `${percent.format(selected.roiPercent)}%`}</small></div>
       </div>
       {selected.allocations.length === 0 ? (
         <div className="no-investment"><strong>No investment recommended for this case.</strong><p>Gemini’s suggestions are listed above, but none has positive projected net benefit for the selected objective, budget, and horizon. Review the brief, costs, or impact assumptions.</p></div>
@@ -277,7 +277,7 @@ function AssumptionsList({ result }: { result: StrategyGenerationResponse }) {
 
 function EvidenceList({ result, selected }: { result: StrategyGenerationResponse; selected: StrategyConfidenceResult }) {
   return <div className="strategy-drawer-content">
-    <p className="drawer-lede">Northwind event baselines and costs come from the source CSVs. Gemini-suggested shares and rationales are proposals, not source facts.</p>
+    <p className="drawer-lede">Northwind event baselines and costs come from the source CSVs. Gemini-suggested shares and rationales are proposals, not source facts. ROI uses horizon net benefit divided by total projected cost, including operating costs over the selected horizon.</p>
     <dl className="evidence-values">
       {selected.allocations.map((item) => <div key={item.id}><dt>{item.name}<small>{item.source}</small><small>{item.calculation}</small></dt><dd>{formatMoney(item.incrementalAnnualGrossSavingsUsd)} / year</dd></div>)}
       {selected.calculation.map((item) => <div key={item}><dt>Portfolio calculation</dt><dd className="calculation-text">{item}</dd></div>)}
